@@ -6,9 +6,13 @@ access: 1
 arch_prctl: 1
 bind: 1
 brk: 1
+clone: 1
 close: 1
 connect: 1
 dup: 1
+epoll_create: 1
+epoll_ctl: 1
+epoll_wait: 1
 execve: 1
 exit: 1
 exit_group: 1
@@ -17,7 +21,9 @@ fcntl: 1
 fstat: 1
 futex: 1
 getdents: 1
+geteuid: 1
 getpeername: 1
+getpid: 1
 getrandom: 1
 getrlimit: 1
 getsockname: 1
@@ -29,14 +35,22 @@ getuid: 1
 # doesn't touch, it's probably not it. These values work.
 ioctl: arg1 == 0x541b || arg1 == 0x5402 || arg1 == 0x5401 || arg1 == 0x5421
 lseek: 1
+lstat: 1
+mkdir: 1
 # Make sure PROT_WRITE (bit 1) and PROT_EXEC (bit 2) are not both set.
 mmap: arg2 in 0xfffffffb || arg2 in 0xfffffffd
 mprotect: arg2 in 0xfffffffb || arg2 in 0xfffffffd
 munmap: 1
 openat: 1
 open: 1
+pipe: 1
 poll: 1
+pread64: 1
+preadv: 1
+pwrite64: 1
+pwritev: 1
 read: 1
+readv: 1
 recvfrom: 1
 recvmsg: 1
 restart_syscall: 1
@@ -55,8 +69,9 @@ stat: 1
 umask: 1
 uname: 1
 unlink: 1
-writev: 1
+wait4: 1
 write: 1
+writev: 1
 
 getpid: 1
 prlimit64: arg2 == 0 && arg3 != 0
