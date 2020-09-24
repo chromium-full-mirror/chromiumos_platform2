@@ -7,6 +7,7 @@ alarm: 1
 arch_prctl: 1
 bind: 1
 brk: 1
+chdir: 1
 clock_gettime: 1
 clone: 1
 close: 1
@@ -26,6 +27,7 @@ fstat: 1
 fsync: 1
 ftruncate: 1
 futex: 1
+getcwd: 1
 getdents: 1
 getegid: 1
 geteuid: 1
@@ -35,10 +37,9 @@ getrandom: 1
 getrlimit: 1
 getsockname: 1
 getsockopt: 1
+gettimeofday: 1
 getuid: 1
-# ioctl: arg1 == SNDCTL_TMR_TIMEBASE or SNDRV_TIMER_IOCTL_NEXT_DEVICE or TCGETS ||
-#        arg1 == SNDCTL_TMR_START or SNDRV_TIMER_IOCTL_TREAD or TCSETS ||
-#        arg1 == SNDCTL_TMR_CONTINUE or SNDRV_TIMER_IOCTL_GPARAMS or TCSETSF ||
+# ioctl: arg1 == TCGETS || arg1 == TCSETS || arg1 == TCSETSF ||
 #        arg1 == FIONREAD || arg1 == FIONBIO ||
 #        arg1 == SIOCGIFINDEX || arg1 == SIOCETHTOOL
 ioctl: arg1 == 0x5401 || arg1 == 0x5402 || arg1 == 0x5404 || arg1 == 0x541b || arg1 == 0x5421 || arg1 == 0x8933 || arg1 == 0x8946
@@ -57,6 +58,7 @@ pipe: 1
 poll: 1
 pread64: 1
 preadv: 1
+prlimit64: arg2 == 0 && arg3 != 0
 pwrite64: 1
 pwritev: 1
 read: 1
@@ -88,7 +90,3 @@ utime: 1
 wait4: 1
 write: 1
 writev: 1
-
-getpid: 1
-prlimit64: arg2 == 0 && arg3 != 0
-gettimeofday: 1
