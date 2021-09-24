@@ -29,7 +29,7 @@ if (!defined(xwayland_gl_driver_path)) {
 
 # Set this to the shm driver to use for Xwayland.
 if (!defined(xwayland_shm_driver)) {
-  xwayland_shm_driver = "\"virtwl\""
+  xwayland_shm_driver = "\"virtwl-dmabuf\""
 }
 
 # Set this to the shm driver to use for wayland clients.
