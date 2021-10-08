@@ -88,6 +88,7 @@ executable("sommelier") {
     "sommelier-display.cc",
     "sommelier-drm.cc",
     "sommelier-gtk-shell.cc",
+    "sommelier-linux-dmabuf.cc",
     "sommelier-output.cc",
     "sommelier-pointer-constraints.cc",
     "sommelier-relative-pointer-manager.cc",

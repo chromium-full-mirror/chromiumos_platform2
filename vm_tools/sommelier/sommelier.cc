@@ -1389,6 +1389,7 @@ static void sl_registry_handler(void* data,
         registry, id, &zwp_linux_dmabuf_v1_interface, linux_dmabuf->version));
     assert(!ctx->linux_dmabuf);
     ctx->linux_dmabuf = linux_dmabuf;
+    linux_dmabuf->host_global = sl_linux_dmabuf_global_create(ctx);
     linux_dmabuf->host_drm_global = sl_drm_global_create(ctx);
   } else if (strcmp(interface, "zcr_keyboard_extension_v1") == 0) {
     struct sl_keyboard_extension* keyboard_extension =
@@ -1502,6 +1503,8 @@ static void sl_registry_remover(void* data,
   if (ctx->linux_dmabuf && ctx->linux_dmabuf->id == id) {
     if (ctx->linux_dmabuf->host_drm_global)
       sl_global_destroy(ctx->linux_dmabuf->host_drm_global);
+    if (ctx->linux_dmabuf->host_global)
+      sl_global_destroy(ctx->linux_dmabuf->host_global);
     zwp_linux_dmabuf_v1_destroy(ctx->linux_dmabuf->internal);
     free(ctx->linux_dmabuf);
     ctx->linux_dmabuf = NULL;
