@@ -3923,7 +3923,7 @@ static void sl_print_usage() {
       "  --frame-color=COLOR\t\tWindow frame color for X11 clients\n"
       "  --virtwl-device=DEVICE\tVirtWL device to use\n"
       "  --drm-device=DEVICE\t\tDRM device to use\n"
-      "  --glamor\t\t\tUse glamor to accelerate X11 clients\n"
+      "  --no-glamor\t\t\tDon't use glamor to accelerate X11 clients\n"
 #ifdef PERFETTO_TRACING
       "  --trace-filename=PATH\t\tPath to Perfetto trace filename\n"
       "  --trace-system\t\tPerfetto trace to system daemon\n"
@@ -4028,7 +4028,7 @@ int main(int argc, char** argv) {
   const char* frame_color = getenv("SOMMELIER_FRAME_COLOR");
   const char* dark_frame_color = getenv("SOMMELIER_DARK_FRAME_COLOR");
   const char* drm_device = getenv("SOMMELIER_DRM_DEVICE");
-  const char* glamor = getenv("SOMMELIER_GLAMOR");
+  const char* no_glamor = getenv("SOMMELIER_NO_GLAMOR");
   const char* fullscreen_mode = getenv("SOMMELIER_FULLSCREEN_MODE");
   const char* shm_driver = getenv("SOMMELIER_SHM_DRIVER");
   const char* data_driver = getenv("SOMMELIER_DATA_DRIVER");
@@ -4121,8 +4121,8 @@ int main(int argc, char** argv) {
       dark_frame_color = sl_arg_value(arg);
     } else if (strstr(arg, "--drm-device") == arg) {
       drm_device = sl_arg_value(arg);
-    } else if (strstr(arg, "--glamor") == arg) {
-      glamor = "1";
+    } else if (strstr(arg, "--no-glamor") == arg) {
+      no_glamor = "1";
     } else if (strstr(arg, "--fullscreen-mode") == arg) {
       fullscreen_mode = sl_arg_value(arg);
     } else if (strstr(arg, "--x-auth") == arg) {
@@ -4635,7 +4635,7 @@ int main(int argc, char** argv) {
         args[i++] = "-rootless";
         // Use software rendering unless we have a DRM device and glamor is
         // enabled.
-        if (!ctx.drm_device || !glamor || !strcmp(glamor, "0"))
+        if (!ctx.drm_device || (no_glamor && !strcmp(no_glamor, "1")))
           args[i++] = "-shm";
         args[i++] = "-displayfd";
         args[i++] = display_fd_str;
