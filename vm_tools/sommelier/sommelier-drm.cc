@@ -220,6 +220,8 @@ static void sl_drm_callback_done(void* data,
 
   if (host->ctx->drm_device)
     wl_drm_send_device(host->resource, host->ctx->drm_device);
+  else if (host->ctx->magma_device)
+    wl_drm_send_device(host->resource, host->ctx->magma_device);
   if (host->version >= WL_DRM_CREATE_PRIME_BUFFER_SINCE_VERSION)
     wl_drm_send_capabilities(host->resource, WL_DRM_CAPABILITY_PRIME);
 }

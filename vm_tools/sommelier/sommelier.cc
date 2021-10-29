@@ -3974,6 +3974,7 @@ int main(int argc, char** argv) {
   ctx.virtwl_socket_event_source = NULL;
   ctx.vm_id = DEFAULT_VM_NAME;
   ctx.drm_device = NULL;
+  ctx.magma_device = NULL;
   ctx.gbm = NULL;
   ctx.xwayland = 0;
   ctx.xwayland_pid = -1;
@@ -4028,6 +4029,7 @@ int main(int argc, char** argv) {
   const char* frame_color = getenv("SOMMELIER_FRAME_COLOR");
   const char* dark_frame_color = getenv("SOMMELIER_DARK_FRAME_COLOR");
   const char* drm_device = getenv("SOMMELIER_DRM_DEVICE");
+  const char* magma_device = getenv("SOMMELIER_MAGMA_DEVICE");
   const char* no_glamor = getenv("SOMMELIER_NO_GLAMOR");
   const char* fullscreen_mode = getenv("SOMMELIER_FULLSCREEN_MODE");
   const char* shm_driver = getenv("SOMMELIER_SHM_DRIVER");
@@ -4121,6 +4123,8 @@ int main(int argc, char** argv) {
       dark_frame_color = sl_arg_value(arg);
     } else if (strstr(arg, "--drm-device") == arg) {
       drm_device = sl_arg_value(arg);
+    } else if (strstr(arg, "--magma-device") == arg) {
+      magma_device = sl_arg_value(arg);
     } else if (strstr(arg, "--no-glamor") == arg) {
       no_glamor = "1";
     } else if (strstr(arg, "--fullscreen-mode") == arg) {
@@ -4406,6 +4410,25 @@ int main(int argc, char** argv) {
     }
 
     ctx.drm_device = drm_device;
+  } else {
+    // If glamor enabled, provide a default magma device.
+    if (!magma_device && ((no_glamor == NULL) || !strcmp(no_glamor, "0")))
+      magma_device = "/dev/magma0";
+
+    int fd = open(magma_device, O_RDWR | O_CLOEXEC);
+    if (fd == -1) {
+      fprintf(stderr, "error: could not open %s (%s)\n", magma_device,
+              strerror(errno));
+      return EXIT_FAILURE;
+    }
+
+    ctx.gbm = gbm_create_device(fd);
+    if (!ctx.gbm) {
+      fprintf(stderr, "error: couldn't create gbm device\n");
+      return EXIT_FAILURE;
+    }
+
+    ctx.magma_device = magma_device;
   }
 
   if (!shm_driver)
@@ -4413,8 +4436,8 @@ int main(int argc, char** argv) {
 
   if (shm_driver) {
     if (strcmp(shm_driver, "dmabuf") == 0) {
-      if (!ctx.drm_device) {
-        fprintf(stderr, "error: need drm device for dmabuf driver\n");
+      if (!ctx.drm_device && !ctx.magma_device) {
+        fprintf(stderr, "error: need drm or magma device for dmabuf driver\n");
         return EXIT_FAILURE;
       }
       ctx.shm_driver = SHM_DRIVER_DMABUF;
@@ -4441,7 +4464,7 @@ int main(int argc, char** argv) {
         }
       }
     }
-  } else if (ctx.drm_device) {
+  } else if (ctx.drm_device || ctx.magma_device) {
     ctx.shm_driver = SHM_DRIVER_DMABUF;
   }
 
@@ -4633,9 +4656,9 @@ int main(int argc, char** argv) {
         args[i++] = "-nolisten";
         args[i++] = "tcp";
         args[i++] = "-rootless";
-        // Use software rendering unless we have a DRM device and glamor is
+        // Use software rendering unless we have a DRM or magma device and glamor is
         // enabled.
-        if (!ctx.drm_device || (no_glamor && !strcmp(no_glamor, "1")))
+        if ((!ctx.drm_device && !ctx.magma_device) || (no_glamor && !strcmp(no_glamor, "1")))
           args[i++] = "-shm";
         args[i++] = "-displayfd";
         args[i++] = display_fd_str;

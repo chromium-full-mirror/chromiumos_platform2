@@ -137,6 +137,7 @@ struct sl_context {
   struct wl_event_source* virtwl_socket_event_source;
   const char* vm_id;
   const char* drm_device;
+  const char* magma_device;
   struct gbm_device* gbm;
   int xwayland;
   pid_t xwayland_pid;
