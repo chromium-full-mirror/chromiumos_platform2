@@ -4410,11 +4410,13 @@ int main(int argc, char** argv) {
     }
 
     ctx.drm_device = drm_device;
-  } else {
-    // If glamor enabled, provide a default magma device.
-    if (!magma_device && ((no_glamor == NULL) || !strcmp(no_glamor, "0")))
-      magma_device = "/dev/magma0";
+  } else if (!magma_device) {
+      // If glamor enabled, provide a default magma device.
+      if ((no_glamor == NULL) || !strcmp(no_glamor, "0"))
+        magma_device = "/dev/magma0";
+  }
 
+  if (magma_device) {
     int fd = open(magma_device, O_RDWR | O_CLOEXEC);
     if (fd == -1) {
       fprintf(stderr, "error: could not open %s (%s)\n", magma_device,
