@@ -1384,7 +1384,7 @@ static void sl_registry_handler(void* data,
     assert(linux_dmabuf);
     linux_dmabuf->ctx = ctx;
     linux_dmabuf->id = id;
-    linux_dmabuf->version = MIN(2, version);
+    linux_dmabuf->version = MIN(3, version);
     linux_dmabuf->internal = static_cast<zwp_linux_dmabuf_v1*>(wl_registry_bind(
         registry, id, &zwp_linux_dmabuf_v1_interface, linux_dmabuf->version));
     assert(!ctx->linux_dmabuf);
