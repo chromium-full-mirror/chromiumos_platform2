@@ -60,6 +60,9 @@
 #ifndef XWAYLAND_SHM_DRIVER
 #error XWAYLAND_SHM_DRIVER must be defined
 #endif
+#ifndef XWAYLAND_VK_ICD_FILENAMES
+#error XWAYLAND_VK_ICD_FILENAMES must be defined
+#endif
 #ifndef SHM_DRIVER
 #error SHM_DRIVER must be defined
 #endif
@@ -4040,6 +4043,8 @@ int main(int argc, char** argv) {
   const char* xwayland_path = getenv("SOMMELIER_XWAYLAND_PATH");
   const char* xwayland_gl_driver_path =
       getenv("SOMMELIER_XWAYLAND_GL_DRIVER_PATH");
+  const char* xwayland_vk_icd_filenames =
+      getenv("SOMMELIER_XWAYLAND_VK_ICD_FILENAMES");
   const char* xauth_path = getenv("SOMMELIER_XAUTH_PATH");
   const char* xfont_path = getenv("SOMMELIER_XFONT_PATH");
   const char* socket_name = "wayland-0";
@@ -4685,6 +4690,14 @@ int main(int argc, char** argv) {
           }
         } else if (XWAYLAND_GL_DRIVER_PATH && *XWAYLAND_GL_DRIVER_PATH) {
           setenv("LIBGL_DRIVERS_PATH", XWAYLAND_GL_DRIVER_PATH, 1);
+        }
+
+        if (xwayland_vk_icd_filenames) {
+          if (*xwayland_vk_icd_filenames) {
+            setenv("VK_ICD_FILENAMES", xwayland_vk_icd_filenames, 1);
+          }
+        } else if (XWAYLAND_VK_ICD_FILENAMES && *XWAYLAND_VK_ICD_FILENAMES) {
+          setenv("VK_ICD_FILENAMES", XWAYLAND_VK_ICD_FILENAMES, 1);
         }
 
         sl_execvp(args[0], const_cast<char* const*>(args), sv[1]);

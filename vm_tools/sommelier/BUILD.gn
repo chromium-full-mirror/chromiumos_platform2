@@ -32,6 +32,11 @@ if (!defined(xwayland_shm_driver)) {
   xwayland_shm_driver = "\"virtwl-dmabuf\""
 }
 
+# Set this to the VK ICD filenames to use for Xwayland.
+if (!defined(xwayland_vk_icd_filenames)) {
+  xwayland_vk_icd_filenames = "\"/usr/share/vulkan/icd.d/10_magma_intel_icd.x86_64.json\""
+}
+
 # Set this to the shm driver to use for wayland clients.
 if (!defined(shm_driver)) {
   shm_driver = "\"virtwl-dmabuf\""
@@ -109,6 +114,7 @@ executable("sommelier") {
     "XWAYLAND_PATH=${xwayland_path}",
     "XWAYLAND_GL_DRIVER_PATH=${xwayland_gl_driver_path}",
     "XWAYLAND_SHM_DRIVER=${xwayland_shm_driver}",
+    "XWAYLAND_VK_ICD_FILENAMES=${xwayland_vk_icd_filenames}",
     "SHM_DRIVER=${shm_driver}",
     "VIRTWL_DEVICE=${virtwl_device}",
     "PEER_CMD_PREFIX=${peer_cmd_prefix}",

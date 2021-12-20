@@ -20,6 +20,12 @@ option('xwayland_shm_driver',
   description: 'shm driver to use for Xwayland'
 )
 
+option('xwayland_vk_icd_filenames',
+  type: 'string',
+  value: '/usr/share/vulkan/icd.d/10_magma_intel_icd.x86_64.json',
+  description: 'the VK ICD filenames to use for Xwayland'
+)
+
 option('shm_driver',
   type: 'string',
   value: 'virtwl-dmabuf',
