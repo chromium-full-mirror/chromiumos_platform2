@@ -6,6 +6,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "linux-dmabuf-unstable-v1-client-protocol.h"  // NOLINT(build/include_directory)
 #include "linux-dmabuf-unstable-v1-server-protocol.h"  // NOLINT(build/include_directory)
@@ -41,6 +42,7 @@ static void sl_linux_buffer_params_add(struct wl_client* client,
 
   zwp_linux_buffer_params_v1_add(host->proxy, fd, plane_idx, offset, stride,
                                  modifier_hi, modifier_lo);
+  close(fd);
 }
 
 static void sl_linux_buffer_params_create(struct wl_client* client,
