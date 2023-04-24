@@ -503,7 +503,15 @@ REGIONS_LIST = [
         KML.ANSI,
         "Ukraine",
     ),
-    ]
+    Region(
+        "in.hybrid",
+        ["xkb:in::eng", "xkb:us::eng"],
+        "Asia/Calcutta",
+        ["en-IN", "en-US"],
+        KML.ANSI,
+        "India with Indian keyboard"
+    ),
+]
 
 """A list of :py:class:`regions.Region` objects for
 all **confirmed** regions.  A confirmed region is a region whose
