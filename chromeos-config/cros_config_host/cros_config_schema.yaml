@@ -671,6 +671,10 @@ properties:
                       type: string
                       description: Specifies the list of Zephyr-based firmware
                         targets to build.
+                    zephyr-detachable-base:
+                      type: string
+                      description: Specifies the detachable base of Zephyr-based firmware
+                        target to build.
                   additionalProperties: false
                 ec-ro-image: *bcs_file_name
                 pd-ro-image: *bcs_file_name

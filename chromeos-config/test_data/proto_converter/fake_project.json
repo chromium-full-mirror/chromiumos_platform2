@@ -970,6 +970,7 @@
               "fake_ec_extra2"
             ],
             "libpayload": "fake",
+            "zephyr-detachable-base": "fake_zephyr_detachable_base",
             "zephyr-ec": "projects/fake/fake"
           },
           "ec-ro-image": "bcs://Fake_EC.11111.2.0.tbz2",
@@ -1197,6 +1198,7 @@
               "fake_ec_extra2"
             ],
             "libpayload": "fake",
+            "zephyr-detachable-base": "fake_zephyr_detachable_base",
             "zephyr-ec": "projects/fake/fake"
           },
           "ec-ro-image": "bcs://Fake_EC.11111.2.0.tbz2",
