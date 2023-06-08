@@ -10,7 +10,6 @@
 
 #include <base/files/file_path.h>
 #include <base/time/time.h>
-#include <brillo/timers/alarm_timer.h>
 
 namespace power_manager {
 
@@ -30,8 +29,9 @@ class SuspendConfiguratorInterface {
   virtual ~SuspendConfiguratorInterface() = default;
 
   // Do pre-suspend configuration and logging just before asking kernel to
-  // suspend.
-  virtual void PrepareForSuspend(const base::TimeDelta& suspend_duration) = 0;
+  // suspend. Returns the wakealarm time that gets programmed into the RTC.
+  virtual uint64_t PrepareForSuspend(
+      const base::TimeDelta& suspend_duration) = 0;
   // Do post-suspend work just after resuming from suspend. Returns false if the
   // last suspend was a failure. Returns true otherwise.
   virtual bool UndoPrepareForSuspend() = 0;
@@ -53,7 +53,7 @@ class SuspendConfigurator : public SuspendConfiguratorInterface {
   void Init(PrefsInterface* prefs);
 
   // SuspendConfiguratorInterface implementation.
-  void PrepareForSuspend(const base::TimeDelta& suspend_duration) override;
+  uint64_t PrepareForSuspend(const base::TimeDelta& suspend_duration) override;
   bool UndoPrepareForSuspend() override;
   bool IsHibernateAvailable() override;
 
@@ -81,11 +81,6 @@ class SuspendConfigurator : public SuspendConfiguratorInterface {
   // Prefixing all paths for testing with a temp directory. Empty (no
   // prefix) by default.
   base::FilePath prefix_path_for_testing_;
-
-  // Timer to wake the system from suspend. Set when suspend_duration is passed
-  // to  PrepareForSuspend().
-  std::unique_ptr<brillo::timers::SimpleAlarmTimer> alarm_ =
-      brillo::timers::SimpleAlarmTimer::Create();
 
   // Mode for suspend. One of Suspend-to-idle, Power-on-suspend, or
   // Suspend-to-RAM.
