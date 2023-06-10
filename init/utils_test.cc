@@ -11,7 +11,28 @@
 #include <rootdev/rootdev.h>
 #include "init/utils.h"
 
-TEST(GetRootDevice, NoStripPartition) {
+namespace {
+
+// Commands for disk formatting utility sfdisk.
+// Specify that partition table should use gpt format.
+constexpr char kSfdiskPartitionTableTypeCommand[] = "label: gpt\n";
+// Templates for partition command (size specified in number of sectors).
+constexpr char kSfdiskCommandFormat[] = "size=1, type=%s, name=\"%s\"\n";
+constexpr char kSfdiskCommandWithAttrsFormat[] =
+    "size=1, type=%s, name=\"%s\", attrs=\"%s\"\n";
+
+// UUIDs for various partition types in gpt partition tables.
+constexpr char kKernelPartition[] = "FE3A2A5D-4F32-41A7-B725-ACCC3285A309";
+constexpr char kRootPartition[] = "3CB8E202-3B7E-47DD-8A3C-7FF2A13CFCEC";
+constexpr char kDataPartition[] = "0FC63DAF-8483-4772-8E79-3D69D8477DE4";
+constexpr char kReservedPartition[] = "2E0A753D-9E48-43B0-8337-B15192CB1B5E";
+constexpr char kRWFWPartition[] = "CAB6E88E-ABF3-4102-A07A-D4BB9BE3C1D3";
+constexpr char kEFIPartition[] = "C12A7328-F81F-11D2-BA4B-00A0C93EC93B";
+
+}  // namespace
+
+// TODO(b/286154453): Appears to fail when host OS has md array.
+TEST(GetRootDevice, DISABLED_NoStripPartition) {
   base::FilePath root_dev;
   char dev_path[PATH_MAX];
   int ret = rootdev(dev_path, sizeof(dev_path), true, false);
