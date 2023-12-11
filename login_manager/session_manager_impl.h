@@ -209,6 +209,7 @@ class SessionManagerImpl
   std::vector<std::string> GetFeatureFlags() override {
     return device_policy_->GetFeatureFlags();
   }
+  std::vector<std::string> GetExtraCommandLineArguments() override;
 
   // Starts a 'Powerwash' of the device by touching a flag file, then
   // rebooting to allow early-boot code to wipe parts of stateful we
