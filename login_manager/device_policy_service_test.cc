@@ -1005,33 +1005,9 @@ TEST_F(DevicePolicyServiceTest, ExtraCommandLineArguments) {
   MockNssUtil nss;
   InitService(&nss, true);
 
-  // DeviceHardwareVideoDecodingEnabled true -> no command line args
+  // On this QFB the disable gpu command line arg should always be added.
   {
     em::ChromeDeviceSettingsProto settings;
-    settings.mutable_devicehardwarevideodecodingenabled()->set_value(true);
-
-    ASSERT_NO_FATAL_FAILURE(InitPolicy(settings, owner_, fake_sig_, ""));
-    SetExpectationsAndStorePolicy(MakeChromePolicyNamespace(), store_,
-                                  policy_proto_);
-
-    EXPECT_THAT(service_->GetExtraCommandLineArguments(), ElementsAre());
-  }
-
-  // DeviceHardwareVideoDecodingEnabled unset -> no command line args
-  {
-    em::ChromeDeviceSettingsProto settings;
-
-    ASSERT_NO_FATAL_FAILURE(InitPolicy(settings, owner_, fake_sig_, ""));
-    SetExpectationsAndStorePolicy(MakeChromePolicyNamespace(), store_,
-                                  policy_proto_);
-
-    EXPECT_THAT(service_->GetExtraCommandLineArguments(), ElementsAre());
-  }
-
-  // DeviceHardwareVideoDecodingEnabled false -> disable gpu command line arg
-  {
-    em::ChromeDeviceSettingsProto settings;
-    settings.mutable_devicehardwarevideodecodingenabled()->set_value(false);
 
     ASSERT_NO_FATAL_FAILURE(InitPolicy(settings, owner_, fake_sig_, ""));
     SetExpectationsAndStorePolicy(MakeChromePolicyNamespace(), store_,
