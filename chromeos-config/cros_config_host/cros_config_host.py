@@ -22,7 +22,7 @@ import sys
 # pylint: disable=wrong-import-position
 this_dir = os.path.dirname(__file__)
 sys.path.insert(0, this_dir)
-from libcros_config_host import CrosConfig
+from libcros_config_host import CrosConfig  # pylint: disable=import-error
 
 
 sys.path.pop(0)
@@ -104,6 +104,26 @@ def GetDetachableBaseFirmwareFiles(config):
         print(files.source)
         print(files.dest)
         print(files.symlink)
+
+
+def GetDetachableBaseTouchFirmwareFiles(config):
+    """Prints a list of detachable base firmware files across all models.
+
+    The output is one line for the project name, and one line for the name of
+    the touchpad firmware under /lib/firmware.
+    e.g.:
+       kelpie
+       kelpie-touch.fw
+
+    Args:
+        config: A CrosConfig instance
+    """
+    for (
+        project,
+        image_name,
+    ) in config.GetDetachableBaseTouchFirmwareFiles().items():
+        print(project)
+        print(image_name)
 
 
 def GetArcFiles(config):
@@ -375,6 +395,13 @@ def GetParser(description):
         "first line is firmware file, second line is symlink name for "
         "/lib/firmware",
     )
+    # Parser: get-detachable-base-touch-firmware-files
+    subparsers.add_parser(
+        "get-detachable-base-touch-firmware-files",
+        help="Lists the detachable base and touchpad firmware combinations: "
+        "first line is the detachable base project name, second line is the"
+        "touchpad firmware filename under /lib/firmware",
+    )
     subparsers.add_parser(
         "get-firmware-uris",
         help="Lists AP firmware URIs for models. These URIs can be used to "
@@ -526,6 +553,8 @@ def main(argv=None):
         GetTouchFirmwareFiles(config)
     elif opts.subcommand == "get-detachable-base-firmware-files":
         GetDetachableBaseFirmwareFiles(config)
+    elif opts.subcommand == "get-detachable-base-touch-firmware-files":
+        GetDetachableBaseTouchFirmwareFiles(config)
     elif opts.subcommand == "get-firmware-uris":
         GetFirmwareUris(config)
     elif opts.subcommand == "get-arc-files":

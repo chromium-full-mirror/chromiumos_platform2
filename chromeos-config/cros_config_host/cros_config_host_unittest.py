@@ -145,6 +145,12 @@ class CrosConfigHostTest(unittest.TestCase):
         output = self._check_output("get-intel-wifi-sar-files")
         self.CheckManyLines(output, 1)
 
+    def testGetDetachableBaseTouchFirmwareFiles(self):
+        output = self._check_output("get-detachable-base-touch-firmware-files")
+        self.assertEqual(
+            output, "another_zephyr_base\nanother_zephyr_base-touch.fw\n"
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
