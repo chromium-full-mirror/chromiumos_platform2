@@ -107,7 +107,6 @@ EcComponentFunction::DataType EcComponentFunction::EvalImpl() const {
   } else {
     manifest = EcComponentManifestReader::Read();
   }
-  auto manifest = EcComponentManifestReader::Read();
   if (!manifest) {
     LOG(ERROR) << "Get component manifest failed.";
     return {};
