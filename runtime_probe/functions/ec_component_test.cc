@@ -10,6 +10,7 @@
 #include <base/strings/stringprintf.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <libec/get_version_command.h>
 #include <libec/i2c_read_command.h>
 
 #include "runtime_probe/functions/ec_component.h"
@@ -32,6 +33,17 @@ constexpr uint8_t kEcI2cStatusSuccess = 0;
 
 class EcComponentFunctionTest : public BaseFunctionTest {
  protected:
+  class FakeGetEcVersionCommand : public ec::GetVersionCommand {
+    using ec::GetVersionCommand::GetVersionCommand;
+
+   public:
+    struct ec_response_get_version* Resp() override { return &resp_.value(); }
+
+    bool EcCommandRun(int fd) override { return resp_.has_value(); }
+
+    std::optional<struct ec_response_get_version> resp_;
+  };
+
   class MockI2cReadCommand : public ec::I2cReadCommand {
    public:
     template <typename T = MockI2cReadCommand>
@@ -50,10 +62,23 @@ class EcComponentFunctionTest : public BaseFunctionTest {
 
    public:
     base::ScopedFD GetEcDevice() const override { return base::ScopedFD{}; }
+
+    std::unique_ptr<ec::GetVersionCommand> GetGetVersionCommand()
+        const override {
+      auto cmd = std::make_unique<FakeGetEcVersionCommand>();
+      cmd->resp_ = ec_response_get_version_;
+      return cmd;
+    }
+
     MOCK_METHOD(std::unique_ptr<ec::I2cReadCommand>,
                 GetI2cReadCommand,
                 (uint8_t port, uint8_t addr8, uint8_t offset, uint8_t read_len),
                 (const override));
+
+    std::optional<struct ec_response_get_version> ec_response_get_version_{
+        {.version_string_ro = "ro_version",
+         .version_string_rw = "model-0.0.0-abcdefa",
+         .current_image = EC_IMAGE_RW}};
   };
 
   void SetUpEcComponentManifest(const std::string& image_name,
@@ -68,6 +93,13 @@ class EcComponentFunctionTest : public BaseFunctionTest {
     ASSERT_TRUE(base::CopyFile(
         GetTestDataPath().Append(file_path),
         GetPathUnderRoot(manifest_dir.Append(kEcComponentManifestName))));
+  }
+
+  void SetFakeEcComponentManifest(const std::string& content) {
+    const std::string image_name = "fake_image";
+    mock_context()->fake_cros_config()->SetString(
+        kCrosConfigImageNamePath, kCrosConfigImageNameKey, image_name);
+    SetFile({kCmePath, image_name, kEcComponentManifestName}, content);
   }
 
   void ExpectI2cReadSuccess(MockEcComponentFunction* probe_function,
@@ -108,8 +140,6 @@ class EcComponentFunctionTest : public BaseFunctionTest {
     EXPECT_CALL(*probe_function, GetI2cReadCommand(port, addr8, _, _))
         .WillOnce(Return(ByMove(std::move(cmd))));
   }
-
- private:
 };
 
 class EcComponentFunctionTestNoExpect : public EcComponentFunctionTest {
