@@ -30,6 +30,7 @@ class EcComponentFunction : public PrivilegedProbeFunction {
 
  private:
   // PrivilegedProbeFunction overrides.
+  bool PostParseArguments() final;
   DataType EvalImpl() const override;
 
   virtual base::ScopedFD GetEcDevice() const;
@@ -44,6 +45,7 @@ class EcComponentFunction : public PrivilegedProbeFunction {
 
   PROBE_FUNCTION_ARG_DEF(std::optional<std::string>, type);
   PROBE_FUNCTION_ARG_DEF(std::optional<std::string>, name);
+  PROBE_FUNCTION_ARG_DEF(std::optional<std::string>, manifest_path);
 };
 
 }  // namespace runtime_probe

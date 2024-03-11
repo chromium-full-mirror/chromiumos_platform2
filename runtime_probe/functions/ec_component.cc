@@ -10,10 +10,12 @@
 #include <string>
 #include <vector>
 
+#include <base/files/file_path.h>
 #include <base/files/scoped_file.h>
 #include <base/values.h>
 #include <libec/i2c_read_command.h>
 
+#include "runtime_probe/system/context.h"
 #include "runtime_probe/utils/ec_component_manifest.h"
 
 namespace runtime_probe {
@@ -71,8 +73,36 @@ bool EcComponentFunction::IsValidComponent(
   return false;
 }
 
+bool EcComponentFunction::PostParseArguments() {
+  if (manifest_path_ && !Context::Get()->factory_mode()) {
+    LOG(ERROR) << "manifest_path can only be set in factory_runtime_probe.";
+    return false;
+  }
+  return true;
+}
+
 EcComponentFunction::DataType EcComponentFunction::EvalImpl() const {
   base::ScopedFD ec_dev = GetEcDevice();
+
+  std::optional<EcComponentManifest> manifest;
+  if (manifest_path_) {
+    manifest = EcComponentManifestReader::ReadFromFilePath(
+        base::FilePath(manifest_path_.value()));
+  } else {
+    manifest = EcComponentManifestReader::Read();
+  }
+  if (!manifest) {
+    LOG(ERROR) << "Get component manifest failed.";
+    return {};
+  }
+  auto ec_version = GetCurrentECVersion(ec_dev);
+  if (ec_version != manifest->ec_version) {
+    LOG(ERROR) << "Current EC version \"" << ec_version.value_or("std::nullopt")
+               << "\" doesn't match manifest version \"" << manifest->ec_version
+               << "\".";
+    return {};
+  }
+
   DataType result{};
   for (const auto& comp : GetComponentCandidates(type_, name_)) {
     if (IsValidComponent(comp, ec_dev.get())) {

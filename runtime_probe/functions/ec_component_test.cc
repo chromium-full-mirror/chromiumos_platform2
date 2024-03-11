@@ -5,6 +5,7 @@
 #include <memory>
 #include <utility>
 
+#include <base/files/file_path.h>
 #include <base/json/json_reader.h>
 #include <base/strings/stringprintf.h>
 #include <gmock/gmock.h>
@@ -12,6 +13,7 @@
 #include <libec/i2c_read_command.h>
 
 #include "runtime_probe/functions/ec_component.h"
+#include "runtime_probe/probe_function.h"
 #include "runtime_probe/utils/ec_component_manifest.h"
 #include "runtime_probe/utils/function_test_utils.h"
 
@@ -262,6 +264,143 @@ TEST_F(EcComponentFunctionTestWithExpect, ProbeI2cValueMismatch) {
                                  kMismatchValue);
   ExpectUnorderedListEqual(EvalProbeFunction(probe_function.get()),
                            CreateProbeResultFromJson("[]"));
+}
+
+class EcComponentFunctionTestECVersion : public EcComponentFunctionTest {
+ protected:
+  void SetUp() override {
+    SetFakeEcComponentManifest(R"JSON(
+      {
+        "manifest_version": 1,
+        "ec_version": "model-0.0.0-abcdefa",
+        "component_list": [
+          {
+            "component_type": "base_sensor",
+            "component_name": "base_sensor_2",
+            "i2c": {
+              "port": 3,
+              "addr": "0x01"
+            }
+          }
+        ]
+      }
+    )JSON");
+  }
+
+  void ExpectI2cRead(MockEcComponentFunction* probe_function) {
+    // Expect read the only component in fake manifest above.
+    ExpectI2cReadSuccess(probe_function, 3, 0x02);
+  }
+
+  void ExpectNoI2cRead(MockEcComponentFunction* probe_function) {
+    EXPECT_CALL(*probe_function, GetI2cReadCommand(_, _, _, _)).Times(0);
+  }
+
+  std::unique_ptr<MockEcComponentFunction> probe_function_{
+      CreateProbeFunction<MockEcComponentFunction>(base::Value::Dict{})};
+};
+
+TEST_F(EcComponentFunctionTestECVersion, MatchRO) {
+  probe_function_->ec_response_get_version_ = {
+      .version_string_ro = "model-0.0.0-abcdefa",
+      .version_string_rw = "rw_version",
+      .current_image = EC_IMAGE_RO};
+  ExpectI2cRead(probe_function_.get());
+  EvalProbeFunction(probe_function_.get());
+}
+
+TEST_F(EcComponentFunctionTestECVersion, MatchROB) {
+  probe_function_->ec_response_get_version_ = {
+      .version_string_ro = "model-0.0.0-abcdefa",
+      .version_string_rw = "rw_version",
+      .current_image = EC_IMAGE_RO_B};
+  ExpectI2cRead(probe_function_.get());
+  EvalProbeFunction(probe_function_.get());
+}
+
+TEST_F(EcComponentFunctionTestECVersion, MatchRW) {
+  probe_function_->ec_response_get_version_ = {
+      .version_string_ro = "ro_version",
+      .version_string_rw = "model-0.0.0-abcdefa",
+      .current_image = EC_IMAGE_RW};
+  ExpectI2cRead(probe_function_.get());
+  EvalProbeFunction(probe_function_.get());
+}
+
+TEST_F(EcComponentFunctionTestECVersion, MatchRWB) {
+  probe_function_->ec_response_get_version_ = {
+      .version_string_ro = "ro_version",
+      .version_string_rw = "model-0.0.0-abcdefa",
+      .current_image = EC_IMAGE_RW_B};
+  ExpectI2cRead(probe_function_.get());
+  EvalProbeFunction(probe_function_.get());
+}
+
+TEST_F(EcComponentFunctionTestECVersion, NotMatchRO) {
+  probe_function_->ec_response_get_version_ = {
+      .version_string_ro = "ro_version",
+      .version_string_rw = "rw_version",
+      .current_image = EC_IMAGE_RO};
+  ExpectNoI2cRead(probe_function_.get());
+  EvalProbeFunction(probe_function_.get());
+}
+
+TEST_F(EcComponentFunctionTestECVersion, NotMatchRW) {
+  probe_function_->ec_response_get_version_ = {
+      .version_string_ro = "ro_version",
+      .version_string_rw = "rw_version",
+      .current_image = EC_IMAGE_RW};
+  ExpectNoI2cRead(probe_function_.get());
+  EvalProbeFunction(probe_function_.get());
+}
+
+TEST_F(EcComponentFunctionTestECVersion, Unknown) {
+  probe_function_->ec_response_get_version_ = {
+      .version_string_ro = "model-0.0.0-abcdefa",
+      .version_string_rw = "model-0.0.0-abcdefa",
+      .current_image = EC_IMAGE_UNKNOWN};
+  ExpectNoI2cRead(probe_function_.get());
+  EvalProbeFunction(probe_function_.get());
+}
+
+TEST_F(EcComponentFunctionTestECVersion, GetECVersionFailed) {
+  probe_function_->ec_response_get_version_ = std::nullopt;
+  ExpectNoI2cRead(probe_function_.get());
+  EvalProbeFunction(probe_function_.get());
+}
+
+TEST_F(EcComponentFunctionTest, ProbeWithManifestPathSuccess) {
+  mock_context()->SetFactoryMode(true);
+  auto manifest_path = "/a/fake/path/manifest.json";
+  SetFile(manifest_path, R"JSON(
+      {
+        "manifest_version": 1,
+        "ec_version": "model-0.0.0-abcdefa",
+        "component_list": [
+          {
+            "component_type": "base_sensor",
+            "component_name": "base_sensor_2",
+            "i2c": {
+              "port": 3,
+              "addr": "0x01"
+            }
+          }
+        ]
+      }
+    )JSON");
+  base::Value::Dict argument;
+  argument.Set("manifest_path", GetPathUnderRoot(manifest_path).value());
+
+  auto probe_function = CreateProbeFunction<MockEcComponentFunction>(argument);
+  ExpectI2cReadSuccess(probe_function.get(), 3, 0x02);
+  EvalProbeFunction(probe_function.get());
+}
+
+TEST_F(EcComponentFunctionTest, ProbeWithManifestPathNonFactoryMode) {
+  mock_context()->SetFactoryMode(false);
+  base::Value::Dict argument;
+  argument.Set("manifest_path", "/a/fake/path/manifest.json");
+  ASSERT_FALSE(CreateProbeFunction<MockEcComponentFunction>(argument));
 }
 
 }  // namespace
