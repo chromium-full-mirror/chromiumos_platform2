@@ -5,15 +5,11 @@
 #include <memory>
 
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
 
 #include "minios/mock_process_manager.h"
 #include "minios/recovery_installer.h"
 
 using testing::_;
-using testing::DoAll;
-using testing::Return;
-using testing::SetArgPointee;
 
 namespace minios {
 
@@ -24,21 +20,15 @@ class RecoveryInstallerTest : public ::testing::Test {
   RecoveryInstaller recovery_installer_{mock_process_manager_};
 };
 
-TEST_F(RecoveryInstallerTest, RepartitionDiskProcessFailure) {
+TEST_F(RecoveryInstallerTest, RepartitionDiskFailure) {
   EXPECT_CALL(*mock_process_manager_, RunCommandWithOutput(_, _, _, _))
-      .WillOnce(DoAll(SetArgPointee<1>(0), Return(false)));
-  EXPECT_FALSE(recovery_installer_.RepartitionDisk());
-}
-
-TEST_F(RecoveryInstallerTest, RepartitionDiskExitFailure) {
-  EXPECT_CALL(*mock_process_manager_, RunCommandWithOutput(_, _, _, _))
-      .WillOnce(DoAll(SetArgPointee<1>(1), Return(true)));
+      .WillOnce(testing::Return(false));
   EXPECT_FALSE(recovery_installer_.RepartitionDisk());
 }
 
 TEST_F(RecoveryInstallerTest, RepeatedRepartitionDisk) {
   EXPECT_CALL(*mock_process_manager_, RunCommandWithOutput(_, _, _, _))
-      .WillOnce(DoAll(SetArgPointee<1>(0), Return(true)));
+      .WillOnce(testing::Return(true));
   EXPECT_TRUE(recovery_installer_.RepartitionDisk());
 
   // Does not call to repartition the disk again since it completed successfully
