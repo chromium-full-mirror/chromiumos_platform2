@@ -71,6 +71,10 @@ TEST_F(LogStoreManifestTest, DisabledWithInvalidArgs) {
   LogStoreManifest unaligned_partition_size{disk_file, kBlockSize + 1,
                                             (10 * kBlockSize) + 1};
   EXPECT_EQ(unaligned_partition_size.IsValid(), false);
+
+  LogStoreManifest disk_open_fails{base::FilePath{"unopenable_file"},
+                                   kBlockSize, 3 * kBlockSize};
+  EXPECT_FALSE(disk_open_fails.IsValid());
 }
 
 TEST_F(LogStoreManifestTest, WriteFailsWithoutGenerate) {
@@ -120,14 +124,11 @@ TEST_F(LogStoreManifestTest, VerifyClear) {
   EXPECT_TRUE(manifest_store.Generate(entry));
   // Find the manifest magic where we expect to.
   EXPECT_TRUE(manifest_store.Write());
-
-  const auto retrieved_manifest = manifest_store.Retrieve();
-  ASSERT_TRUE(retrieved_manifest.has_value());
-  EXPECT_EQ(retrieved_manifest->entry().offset(), entry.offset());
-  EXPECT_EQ(retrieved_manifest->entry().count(), entry.count());
+  EXPECT_THAT(manifest_store.FindManifestMagic(),
+              Optional(manifest_store.manifest_store_start_));
 
   manifest_store.Clear();
-  EXPECT_EQ(manifest_store.Retrieve(), std::nullopt);
+  EXPECT_EQ(manifest_store.FindManifestMagic(), std::nullopt);
 }
 
 }  // namespace minios
