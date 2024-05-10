@@ -18,10 +18,12 @@
 #include "attestation-client-test/attestation/dbus-proxy-mocks.h"
 #include "base/files/file_path.h"
 #include "base/files/file_util.h"
+#include "base/files/scoped_temp_dir.h"
+#include "base/functional/callback.h"
 #include "base/memory/scoped_refptr.h"
-#include "base/run_loop.h"
 #include "base/strings/stringprintf.h"
 #include "base/test/task_environment.h"
+#include "base/test/test_future.h"
 #include "base/time/time.h"
 #include "dbus/mock_bus.h"
 #include "dbus/mock_object_proxy.h"
@@ -79,29 +81,34 @@ class AgentPluginTestFixture : public ::testing::TestWithParam<BootmodeAndTpm> {
     dbus::Bus::Options options;
     options.bus_type = dbus::Bus::SYSTEM;
     bus_ = new dbus::MockBus(options);
+    // Setup root directory.
+    ASSERT_TRUE(fake_root_.CreateUniqueTempDir());
+#ifdef HAVE_BOOTPARAM
+    ASSERT_TRUE(base::CreateDirectory(
+        fake_root_.GetPath().Append(AgentPlugin::kBootDataFilepath).DirName()));
+    boot_params_filepath_ =
+        fake_root_.GetPath().Append(AgentPlugin::kBootDataFilepath);
+
+    boot_params boot = {};
+    ASSERT_NE(-1,
+              base::WriteFile(boot_params_filepath_,
+                              reinterpret_cast<char*>(&boot), sizeof(boot)));
+#endif
   }
   void TearDown() override { task_environment_.RunUntilIdle(); }
 
   void CreateAndRunAgentPlugin(int heartbeat_timer) {
-    base::RunLoop run_loop = base::RunLoop();
-    CreateAgentPlugin(&run_loop, heartbeat_timer);
+    base::test::TestFuture<void> future;
+    CreateAgentPlugin(future.GetCallback(), heartbeat_timer);
     EXPECT_TRUE(plugin_->Activate().ok());
-    run_loop.Run();
+    ASSERT_TRUE(future.Wait());
   }
 
-  void CreateAgentPlugin(base::RunLoop* run_loop, int heartbeat_timer) {
-    plugin_ = plugin_factory_->CreateAgentPlugin(
+  void CreateAgentPlugin(base::OnceCallback<void()> cb, int heartbeat_timer) {
+    plugin_ = AgentPlugin::CreateForTesting(
         message_sender_, device_user_, std::move(attestation_proxy_),
-        std::move(tpm_manager_proxy_),
-        base::BindOnce(
-            [](base::RunLoop* run_loop) {
-              if (run_loop) {
-                run_loop->Quit();
-              }
-            },
-            run_loop),
+        std::move(tpm_manager_proxy_), std::move(cb), fake_root_.GetPath(),
         heartbeat_timer);
-    EXPECT_NE(nullptr, plugin_);
     agent_plugin_ = static_cast<AgentPlugin*>(plugin_.get());
   }
 
@@ -166,6 +173,8 @@ class AgentPluginTestFixture : public ::testing::TestWithParam<BootmodeAndTpm> {
   }
 
   base::test::TaskEnvironment task_environment_;
+  base::FilePath boot_params_filepath_;
+  base::ScopedTempDir fake_root_;
   scoped_refptr<MockMessageSender> message_sender_;
   scoped_refptr<dbus::MockBus> bus_;
   scoped_refptr<dbus::MockObjectProxy> attestation_object_proxy_;
@@ -179,7 +188,7 @@ class AgentPluginTestFixture : public ::testing::TestWithParam<BootmodeAndTpm> {
 };
 
 TEST_F(AgentPluginTestFixture, TestGetName) {
-  CreateAgentPlugin(nullptr, 300);
+  CreateAgentPlugin(base::OnceCallback<void()>(), 300);
   ASSERT_EQ("Agent", plugin_->GetName());
 }
 
@@ -335,7 +344,7 @@ TEST_F(AgentPluginTestFixture, TestSetHeartbeatTimerZero) {
   task_environment_.FastForwardBy(base::Seconds(kTimePassed));
 }
 
-TEST_F(AgentPluginTestFixture, TestSendStartEventServicesUnvailable) {
+TEST_F(AgentPluginTestFixture, TestSendStartEventServicesUnavailable) {
   SetupObjectProxies(false);
 
   EXPECT_CALL(*device_user_, GetDeviceUserAsync)
@@ -437,24 +446,21 @@ TEST_F(AgentPluginTestFixture, TestSendStartEventFailure) {
                     reporting::Status(reporting::error::UNAVAILABLE, "Failed"));
           })));
 
-  CreateAgentPlugin(nullptr, kDefaultHeartbeatTimer);
+  CreateAgentPlugin(base::OnceCallback<void()>(), kDefaultHeartbeatTimer);
   EXPECT_TRUE(plugin_->Activate().ok());
   task_environment_.FastForwardBy(base::Seconds(kTimePassed));
 }
 
 #ifdef HAVE_BOOTPARAM
 TEST_F(AgentPluginTestFixture, TestUefiSecureBootFileExistsEnabled) {
-  base::FilePath boot_params_filepath;
-  base::CreateTemporaryFile(&boot_params_filepath);
-
   boot_params boot;
   static constexpr int kEfiSecurebootModeEnabled = 3;
   boot.secure_boot = kEfiSecurebootModeEnabled;
-  base::WriteFile(boot_params_filepath, reinterpret_cast<char*>(&boot),
+  base::WriteFile(boot_params_filepath_, reinterpret_cast<char*>(&boot),
                   sizeof(boot));
 
-  CreateAgentPlugin(nullptr, kDefaultHeartbeatTimer);
-  CallGetUefiSecureBootInformation(boot_params_filepath);
+  CreateAgentPlugin(base::OnceCallback<void()>(), kDefaultHeartbeatTimer);
+  CallGetUefiSecureBootInformation(boot_params_filepath_);
 
   auto tcb = GetTcbAttributes();
   EXPECT_EQ(pb::TcbAttributes_FirmwareSecureBoot_CROS_FLEX_UEFI_SECURE_BOOT,
@@ -462,30 +468,24 @@ TEST_F(AgentPluginTestFixture, TestUefiSecureBootFileExistsEnabled) {
 }
 
 TEST_F(AgentPluginTestFixture, TestUefiSecureBootFileExistsNotEnabled) {
-  base::FilePath boot_params_filepath;
-  base::CreateTemporaryFile(&boot_params_filepath);
-
   boot_params boot;
   boot.secure_boot = -1;
-  base::WriteFile(boot_params_filepath, reinterpret_cast<char*>(&boot),
+  base::WriteFile(boot_params_filepath_, reinterpret_cast<char*>(&boot),
                   sizeof(boot));
 
-  CreateAgentPlugin(nullptr, kDefaultHeartbeatTimer);
-  CallGetUefiSecureBootInformation(boot_params_filepath);
+  CreateAgentPlugin(base::OnceCallback<void()>(), kDefaultHeartbeatTimer);
+  CallGetUefiSecureBootInformation(boot_params_filepath_);
 
   auto tcb = GetTcbAttributes();
   EXPECT_FALSE(tcb.has_firmware_secure_boot());
 }
 
 TEST_F(AgentPluginTestFixture, TestUefiSecureBootFileInvalidSize) {
-  base::FilePath boot_params_filepath;
-  base::CreateTemporaryFile(&boot_params_filepath);
-
   std::string content = "invalid file size";
-  base::WriteFile(boot_params_filepath, content.c_str(), content.size());
+  base::WriteFile(boot_params_filepath_, content.c_str(), content.size());
 
-  CreateAgentPlugin(nullptr, kDefaultHeartbeatTimer);
-  CallGetUefiSecureBootInformation(boot_params_filepath);
+  CreateAgentPlugin(base::OnceCallback<void()>(), kDefaultHeartbeatTimer);
+  CallGetUefiSecureBootInformation(boot_params_filepath_);
 
   auto tcb = GetTcbAttributes();
   EXPECT_FALSE(tcb.has_firmware_secure_boot());
@@ -493,7 +493,7 @@ TEST_F(AgentPluginTestFixture, TestUefiSecureBootFileInvalidSize) {
 #endif
 
 TEST_F(AgentPluginTestFixture, TestUefiSecureBootFileDoesNotExist) {
-  CreateAgentPlugin(nullptr, kDefaultHeartbeatTimer);
+  CreateAgentPlugin(base::OnceCallback<void()>(), kDefaultHeartbeatTimer);
   base::FilePath non_existent_filepath = base::FilePath("badfile");
   CallGetUefiSecureBootInformation(non_existent_filepath);
 
@@ -513,7 +513,7 @@ TEST_F(AgentPluginTestFixture, TestNoTpm) {
       .WillOnce(WithArg<1>(Invoke(
           [](tpm_manager::GetVersionInfoReply* out_reply) { return true; })));
 
-  CreateAgentPlugin(nullptr, kDefaultHeartbeatTimer);
+  CreateAgentPlugin(base::OnceCallback<void()>(), kDefaultHeartbeatTimer);
   CallGetTpmInformation();
   EXPECT_EQ(pb::TcbAttributes_SecurityChip_Kind_NONE,
             GetTcbAttributes().security_chip().kind());
@@ -528,7 +528,7 @@ TEST_F(AgentPluginTestFixture, TestTpmDisabled) {
             return true;
           })));
 
-  CreateAgentPlugin(nullptr, kDefaultHeartbeatTimer);
+  CreateAgentPlugin(base::OnceCallback<void()>(), kDefaultHeartbeatTimer);
   CallGetTpmInformation();
   EXPECT_FALSE(GetTcbAttributes().has_security_chip());
 }
@@ -556,7 +556,7 @@ TEST_P(AgentPluginTestFixture, TestBootAndTpmModes) {
             return true;
           })));
 
-  CreateAgentPlugin(nullptr, kDefaultHeartbeatTimer);
+  CreateAgentPlugin(base::OnceCallback<void()>(), kDefaultHeartbeatTimer);
   CallGetCrosSecureBootInformation();
   CallGetTpmInformation();
 
