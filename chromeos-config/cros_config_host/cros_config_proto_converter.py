@@ -3,6 +3,7 @@
 # Copyright 2020 The ChromiumOS Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 """Transforms config from /config/proto/api proto format to platform JSON."""
 
 # pylint: disable=too-many-lines
@@ -136,15 +137,16 @@ def _upsert(field, target, target_name, suffix=None):
 
 
 def _build_arc(config, config_files):
+    base_program = _get_base_program(config.program)
     build_properties = {
         # TODO(chromium:1126527) - Push this into the overlay itself.
         # This isn't/can't be device specific and shouldn't be configured as
         # such.
-        "device": "%s_cheets" % config.program.name.lower(),
+        "device": "%s_cheets" % base_program,
         "first-api-level": "28",
         "marketing-name": config.device_brand.brand_name,
         "metrics-tag": config.hw_design.name.lower(),
-        "product": config.program.name.lower(),
+        "product": base_program,
     }
     if config.oem:
         build_properties["oem"] = config.oem.name
@@ -748,7 +750,7 @@ def _build_ash_flags(config: Config) -> dict:
     _add_flag(
         "arc-build-properties",
         {
-            "device": "%s_cheets" % config.program.name.lower(),
+            "device": "%s_cheets" % _get_base_program(config.program),
             "firstApiLevel": "28",
         },
     )
@@ -1363,6 +1365,13 @@ def _fw_build_target(payload):
     return None
 
 
+def _get_base_program(program):
+    """Returns the base program name to use for a given program."""
+    if program.base_program:
+        return program.base_program.lower()
+    return program.name.lower()
+
+
 def _calculate_image_name_suffix(hw_design_config):
     fw_config = hw_design_config.hardware_features.fw_config
     return "".join(
@@ -1411,7 +1420,7 @@ def _build_firmware(config):
         return None
 
     result = {
-        "bcs-overlay": "overlay-%s-private" % config.program.name.lower(),
+        "bcs-overlay": "overlay-%s-private" % _get_base_program(config.program),
         "build-targets": build_targets,
     }
 
@@ -1637,12 +1646,8 @@ class _AudioConfigBuilder:
         cras_config_with_suffix = self._CRAS_CONFIG_PATH
         design_name_with_suffix = self._design_name
         if cras_suffix:
-            cras_config_with_suffix = (
-                f"{cras_config_with_suffix}.{cras_suffix}"
-            )
-            design_name_with_suffix = (
-                f"{design_name_with_suffix}.{cras_suffix}"
-            )
+            cras_config_with_suffix = f"{cras_config_with_suffix}.{cras_suffix}"
+            design_name_with_suffix = f"{design_name_with_suffix}.{cras_suffix}"
 
         cras_config_source_path = self._build_source_path(
             card_config.cras_config, cras_config_with_suffix
@@ -1696,7 +1701,7 @@ class _AudioConfigBuilder:
         ):
             return {}
 
-        program_name = self._config.program.name.lower()
+        base_program = _get_base_program(self._config.program)
 
         for card_config in itertools.chain(
             self._audio.card_configs, self._program_audio.card_configs
@@ -1708,12 +1713,8 @@ class _AudioConfigBuilder:
 
         cras_suffix = self._select_from_set(self._cras_suffixes, "cras-suffix")
         if cras_suffix:
-            design_name_with_suffix = (
-                f"{design_name_with_suffix}.{cras_suffix}"
-            )
-            cras_config_with_suffix = (
-                f"{cras_config_with_suffix}.{cras_suffix}"
-            )
+            design_name_with_suffix = f"{design_name_with_suffix}.{cras_suffix}"
+            cras_config_with_suffix = f"{cras_config_with_suffix}.{cras_suffix}"
 
         cras_config_source_path = self._build_source_path(
             self._audio.cras_config, cras_config_with_suffix
@@ -1730,7 +1731,7 @@ class _AudioConfigBuilder:
                 )
 
         if self._program_audio.has_module_file:
-            module_name = f"alsa-{program_name}.conf"
+            module_name = f"alsa-{base_program}.conf"
             self._files.append(
                 _file(
                     self._build_source_path(
@@ -1776,7 +1777,7 @@ def _build_audio(config):
     cras_path = "/etc/cras"
     sound_card_init_path = "/etc/sound_card_init"
     design_name = config.hw_design.name.lower()
-    program_name = config.program.name.lower()
+    base_program = _get_base_program(config.program)
     files = []
     ucm_suffix = None
     sound_card_init_conf = None
@@ -1826,7 +1827,7 @@ def _build_audio(config):
             files.append(
                 _file(
                     audio.module_file,
-                    "/etc/modprobe.d/alsa-%s.conf" % program_name,
+                    "/etc/modprobe.d/alsa-%s.conf" % base_program,
                 )
             )
         if audio.board_file:
