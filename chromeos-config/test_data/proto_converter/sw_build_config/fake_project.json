@@ -6481,7 +6481,7 @@
           },
           "ec-ro-image": "bcs://Fake_EC.11111.2.0.tbz2",
           "ec-rw-image": "bcs://Fake_EC.11111.2.4.tbz2",
-          "firmware-config": 90914,
+          "firmware-config": 95010,
           "image-name": "project_wl",
           "main-ro-image": "bcs://Fake.11111.0.0.tbz2",
           "main-rw-image": "bcs://Fake.11111.2.3.tbz2",
@@ -6659,8 +6659,8 @@
         },
         "wifi": {
           "sar-file": {
-            "build-path": "proto_converter/test_data/proto_converter/sw_build_config/wifi/fake/wifi_sar_6.hex",
-            "system-path": "/firmware/cbfs-rw-raw/fake/wifi_sar_6.hex"
+            "build-path": "proto_converter/test_data/proto_converter/sw_build_config/wifi/fake/wifi_sar_7.hex",
+            "system-path": "/firmware/cbfs-rw-raw/fake/wifi_sar_7.hex"
           }
         }
       },
@@ -6771,7 +6771,7 @@
           },
           "ec-ro-image": "bcs://Fake_EC.11111.2.0.tbz2",
           "ec-rw-image": "bcs://Fake_EC.11111.2.4.tbz2",
-          "firmware-config": 90914,
+          "firmware-config": 95010,
           "image-name": "project_wl",
           "main-ro-image": "bcs://Fake.11111.0.0.tbz2",
           "main-rw-image": "bcs://Fake.11111.2.3.tbz2",
@@ -6950,8 +6950,8 @@
         },
         "wifi": {
           "sar-file": {
-            "build-path": "proto_converter/test_data/proto_converter/sw_build_config/wifi/fake/wifi_sar_6.hex",
-            "system-path": "/firmware/cbfs-rw-raw/fake/wifi_sar_6.hex"
+            "build-path": "proto_converter/test_data/proto_converter/sw_build_config/wifi/fake/wifi_sar_7.hex",
+            "system-path": "/firmware/cbfs-rw-raw/fake/wifi_sar_7.hex"
           }
         }
       },
@@ -7062,7 +7062,7 @@
           },
           "ec-ro-image": "bcs://Fake_EC.11111.2.0.tbz2",
           "ec-rw-image": "bcs://Fake_EC.11111.2.4.tbz2",
-          "firmware-config": 90914,
+          "firmware-config": 95010,
           "image-name": "project_wl",
           "main-ro-image": "bcs://Fake.11111.0.0.tbz2",
           "main-rw-image": "bcs://Fake.11111.2.3.tbz2",
@@ -7241,8 +7241,8 @@
         },
         "wifi": {
           "sar-file": {
-            "build-path": "proto_converter/test_data/proto_converter/sw_build_config/wifi/fake/wifi_sar_6.hex",
-            "system-path": "/firmware/cbfs-rw-raw/fake/wifi_sar_6.hex"
+            "build-path": "proto_converter/test_data/proto_converter/sw_build_config/wifi/fake/wifi_sar_7.hex",
+            "system-path": "/firmware/cbfs-rw-raw/fake/wifi_sar_7.hex"
           }
         }
       },
@@ -7353,7 +7353,7 @@
           },
           "ec-ro-image": "bcs://Fake_EC.11111.2.0.tbz2",
           "ec-rw-image": "bcs://Fake_EC.11111.2.4.tbz2",
-          "firmware-config": 90914,
+          "firmware-config": 95010,
           "image-name": "project_wl",
           "main-ro-image": "bcs://Fake.11111.0.0.tbz2",
           "main-rw-image": "bcs://Fake.11111.2.3.tbz2",
@@ -7532,8 +7532,8 @@
         },
         "wifi": {
           "sar-file": {
-            "build-path": "proto_converter/test_data/proto_converter/sw_build_config/wifi/fake/wifi_sar_6.hex",
-            "system-path": "/firmware/cbfs-rw-raw/fake/wifi_sar_6.hex"
+            "build-path": "proto_converter/test_data/proto_converter/sw_build_config/wifi/fake/wifi_sar_7.hex",
+            "system-path": "/firmware/cbfs-rw-raw/fake/wifi_sar_7.hex"
           }
         }
       },
@@ -7657,7 +7657,7 @@
           },
           "ec-ro-image": "bcs://Fake_EC.11111.2.0.tbz2",
           "ec-rw-image": "bcs://Fake_EC.11111.2.4.tbz2",
-          "firmware-config": 95009,
+          "firmware-config": 90913,
           "image-name": "project_rebrand",
           "main-ro-image": "bcs://Fake.11111.0.0.tbz2",
           "main-rw-image": "bcs://Fake.11111.2.3.tbz2",
