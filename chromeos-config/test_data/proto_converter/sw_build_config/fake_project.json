@@ -1565,7 +1565,7 @@
             "zephyr-ec": "projects/fake/fake"
           },
           "ec-ro-image": "bcs://Fake_EC.11111.2.0.tbz2",
-          "firmware-config": 90914,
+          "firmware-config": 95010,
           "image-name": "project_wl",
           "main-ro-image": "bcs://Fake.11111.0.0.tbz2",
           "main-rw-image": "bcs://Fake.11111.2.3.tbz2",
@@ -1630,8 +1630,8 @@
         },
         "wifi": {
           "sar-file": {
-            "build-path": "proto_converter/test_data/proto_converter/sw_build_config/wifi/fake/wifi_sar_6.hex",
-            "system-path": "/firmware/cbfs-rw-raw/fake/wifi_sar_6.hex"
+            "build-path": "proto_converter/test_data/proto_converter/sw_build_config/wifi/fake/wifi_sar_7.hex",
+            "system-path": "/firmware/cbfs-rw-raw/fake/wifi_sar_7.hex"
           }
         }
       },
@@ -1725,7 +1725,7 @@
             "zephyr-ec": "projects/fake/fake"
           },
           "ec-ro-image": "bcs://Fake_EC.11111.2.0.tbz2",
-          "firmware-config": 90914,
+          "firmware-config": 95010,
           "image-name": "project_wl",
           "main-ro-image": "bcs://Fake.11111.0.0.tbz2",
           "main-rw-image": "bcs://Fake.11111.2.3.tbz2",
@@ -1791,8 +1791,8 @@
         },
         "wifi": {
           "sar-file": {
-            "build-path": "proto_converter/test_data/proto_converter/sw_build_config/wifi/fake/wifi_sar_6.hex",
-            "system-path": "/firmware/cbfs-rw-raw/fake/wifi_sar_6.hex"
+            "build-path": "proto_converter/test_data/proto_converter/sw_build_config/wifi/fake/wifi_sar_7.hex",
+            "system-path": "/firmware/cbfs-rw-raw/fake/wifi_sar_7.hex"
           }
         }
       },
@@ -1886,7 +1886,7 @@
             "zephyr-ec": "projects/fake/fake"
           },
           "ec-ro-image": "bcs://Fake_EC.11111.2.0.tbz2",
-          "firmware-config": 90914,
+          "firmware-config": 95010,
           "image-name": "project_wl",
           "main-ro-image": "bcs://Fake.11111.0.0.tbz2",
           "main-rw-image": "bcs://Fake.11111.2.3.tbz2",
@@ -1952,8 +1952,8 @@
         },
         "wifi": {
           "sar-file": {
-            "build-path": "proto_converter/test_data/proto_converter/sw_build_config/wifi/fake/wifi_sar_6.hex",
-            "system-path": "/firmware/cbfs-rw-raw/fake/wifi_sar_6.hex"
+            "build-path": "proto_converter/test_data/proto_converter/sw_build_config/wifi/fake/wifi_sar_7.hex",
+            "system-path": "/firmware/cbfs-rw-raw/fake/wifi_sar_7.hex"
           }
         }
       },
@@ -2047,7 +2047,7 @@
             "zephyr-ec": "projects/fake/fake"
           },
           "ec-ro-image": "bcs://Fake_EC.11111.2.0.tbz2",
-          "firmware-config": 90914,
+          "firmware-config": 95010,
           "image-name": "project_wl",
           "main-ro-image": "bcs://Fake.11111.0.0.tbz2",
           "main-rw-image": "bcs://Fake.11111.2.3.tbz2",
@@ -2113,8 +2113,8 @@
         },
         "wifi": {
           "sar-file": {
-            "build-path": "proto_converter/test_data/proto_converter/sw_build_config/wifi/fake/wifi_sar_6.hex",
-            "system-path": "/firmware/cbfs-rw-raw/fake/wifi_sar_6.hex"
+            "build-path": "proto_converter/test_data/proto_converter/sw_build_config/wifi/fake/wifi_sar_7.hex",
+            "system-path": "/firmware/cbfs-rw-raw/fake/wifi_sar_7.hex"
           }
         }
       },
@@ -2221,7 +2221,7 @@
             "zephyr-ec": "projects/fake/fake"
           },
           "ec-ro-image": "bcs://Fake_EC.11111.2.0.tbz2",
-          "firmware-config": 95009,
+          "firmware-config": 90913,
           "image-name": "project_rebrand",
           "main-ro-image": "bcs://Fake.11111.0.0.tbz2",
           "main-rw-image": "bcs://Fake.11111.2.3.tbz2",
@@ -2456,19 +2456,23 @@
         },
         "audio": {
           "main": {
-            "cras-config-dir": "project_box",
+            "cras-config-dir": "project_box.max98373.alc5682i.0pos.0uf0wf0total",
             "files": [
               {
-                "destination": "/usr/share/alsa/ucm/fakeaudiocard.alc5682i.project_box/HiFi.conf",
-                "source": "project_box/audio/ucm-config/fakeaudiocard.alc5682i.project_box/HiFi.conf"
+                "destination": "/usr/share/alsa/ucm/fakeaudiocard.card_suffix.max98373.alc5682i.0pos.0uf0wf0total/HiFi.conf",
+                "source": "common/audio/ucm-config/fakeaudiocard.card_suffix.max98373.alc5682i.0pos.0uf0wf0total/HiFi.conf"
               },
               {
-                "destination": "/usr/share/alsa/ucm/fakeaudiocard.alc5682i.project_box/fakeaudiocard.alc5682i.project_box.conf",
-                "source": "project_box/audio/ucm-config/fakeaudiocard.alc5682i.project_box/fakeaudiocard.alc5682i.project_box.conf"
+                "destination": "/usr/share/alsa/ucm/fakeaudiocard.card_suffix.max98373.alc5682i.0pos.0uf0wf0total/fakeaudiocard.card_suffix.max98373.alc5682i.0pos.0uf0wf0total.conf",
+                "source": "common/audio/ucm-config/fakeaudiocard.card_suffix.max98373.alc5682i.0pos.0uf0wf0total/fakeaudiocard.card_suffix.max98373.alc5682i.0pos.0uf0wf0total.conf"
               },
               {
-                "destination": "/etc/cras/project_box/fakeaudiocard.card_settings",
-                "source": "project_box/audio/cras-config/fakeaudiocard.card_settings"
+                "destination": "/etc/cras/project_box.max98373.alc5682i.0pos.0uf0wf0total/fakeaudiocard.card_settings",
+                "source": "common/audio/cras-config.max98373.alc5682i.0pos.0uf0wf0total/fakeaudiocard.card_settings"
+              },
+              {
+                "destination": "/etc/sound_card_init/project_box.MAX98373.yaml",
+                "source": "project_box/audio/sound-card-init-config/project_box.MAX98373.yaml"
               },
               {
                 "destination": "/usr/share/alsa/ucm/HDA ATI HDMI/HiFi.conf",
@@ -2479,23 +2483,25 @@
                 "source": "common/audio/ucm-config/HDA ATI HDMI/HDA ATI HDMI.conf"
               },
               {
-                "destination": "/etc/cras/project_box/dsp.ini",
-                "source": "project_box/audio/cras-config/dsp.ini"
+                "destination": "/etc/cras/project_box.max98373.alc5682i.0pos.0uf0wf0total/dsp.ini",
+                "source": "common/audio/cras-config.max98373.alc5682i.0pos.0uf0wf0total/dsp.ini"
               },
               {
-                "destination": "/etc/cras/project_box/board.ini",
-                "source": "project_box/audio/cras-config/board.ini"
+                "destination": "/etc/cras/project_box.max98373.alc5682i.0pos.0uf0wf0total/board.ini",
+                "source": "common/audio/cras-config.max98373.alc5682i.0pos.0uf0wf0total/board.ini"
               },
               {
-                "destination": "/etc/cras/project_box/apm.ini",
-                "source": "project_box/audio/cras-config/apm.ini"
+                "destination": "/etc/cras/project_box.max98373.alc5682i.0pos.0uf0wf0total/apm.ini",
+                "source": "common/audio/cras-config.max98373.alc5682i.0pos.0uf0wf0total/apm.ini"
               },
               {
                 "destination": "/etc/modprobe.d/alsa-fake_program.conf",
                 "source": "common/audio/alsa-module-config/alsa-fake_program.conf"
               }
             ],
-            "ucm-suffix": "alc5682i.project_box"
+            "sound-card-init-conf": "project_box.MAX98373.yaml",
+            "speaker-amp": "MAX98373",
+            "ucm-suffix": "card_suffix.max98373.alc5682i.0pos.0uf0wf0total"
           }
         },
         "brand-code": "FDBX",
