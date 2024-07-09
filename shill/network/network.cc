@@ -114,9 +114,9 @@ Network::Network(int interface_index,
       control_interface_(control_interface),
       dispatcher_(dispatcher),
       metrics_(metrics),
+      patchpanel_client_(patchpanel_client),
       dhcp_provider_(DHCPProvider::GetInstance()),
       rtnl_handler_(net_base::RTNLHandler::GetInstance()),
-      patchpanel_client_(patchpanel_client),
       resolver_(resolver) {}
 
 Network::~Network() {

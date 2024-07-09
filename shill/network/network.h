@@ -622,11 +622,11 @@ class Network : public NetworkMonitor::ClientNetwork {
   ControlInterface* control_interface_;
   EventDispatcher* dispatcher_;
   Metrics* metrics_;
+  patchpanel::Client* patchpanel_client_;
 
   // Cache singleton pointers for performance and test purposes.
   DHCPProvider* dhcp_provider_;
   net_base::RTNLHandler* rtnl_handler_;
-  patchpanel::Client* patchpanel_client_;
   // TODO(b/240871320): /etc/resolv.conf is now managed by dnsproxy. The
   // resolver class is to be deprecated.
   Resolver* resolver_;
