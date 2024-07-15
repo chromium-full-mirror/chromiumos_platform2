@@ -620,21 +620,19 @@ bool StatefulMount::DevUpdateStatefulPartition(const std::string& args) {
     }
 
     base::FilePath preserve_dir = stateful_.Append("unencrypted/preserve");
-    base::FilePath log_dir = stateful_.Append("encrypted/var/log");
 
     // Find everything in stateful and delete it, except for protected paths,
     // and non-empty directories. The non-empty directories contain protected
     // content or they would already be empty from depth first traversal.
     std::vector<base::FilePath> preserved_paths = {
         stateful_.Append(kLabMachine), developer_target, var_target,
-        preserve_dir, log_dir};
-    std::unique_ptr<libstorage::FileEnumerator> enumerator(
-        platform_->GetFileEnumerator(stateful_, true,
-                                     base::FileEnumerator::FILES |
-                                         base::FileEnumerator::DIRECTORIES |
-                                         base::FileEnumerator::SHOW_SYM_LINKS));
-    for (auto path = enumerator->Next(); !path.empty();
-         path = enumerator->Next()) {
+        preserve_dir};
+    base::FileEnumerator enumerator(stateful_, true,
+                                    base::FileEnumerator::FILES |
+                                        base::FileEnumerator::DIRECTORIES |
+                                        base::FileEnumerator::SHOW_SYM_LINKS);
+    for (auto path = enumerator.Next(); !path.empty();
+         path = enumerator.Next()) {
       bool preserve = false;
       for (auto& preserved_path : preserved_paths) {
         if (path == preserved_path || preserved_path.IsParent(path) ||
