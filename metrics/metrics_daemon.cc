@@ -318,6 +318,13 @@ void MetricsDaemon::RunUploaderTest() {
   upload_service_->Init(upload_interval_, metrics_file_,
                         true /* uploads_enabled */);
   upload_service_->UploadEvent();
+
+  upload_service_for_tmpfs_.reset(new UploadService(
+      new SystemProfileCache(true, config_root_), metrics_lib_for_tmpfs_,
+                        server_));
+  upload_service_for_tmpfs_->Init(upload_interval_, metrics_file_for_tmpfs_,
+                        true /* uploads_enabled */);
+  upload_service_for_tmpfs_->UploadEvent();
 }
 
 uint32_t MetricsDaemon::GetOsVersionHash() {
@@ -347,6 +354,7 @@ bool MetricsDaemon::IsOnOfficialBuild() const {
 void MetricsDaemon::Init(bool testing,
                          bool uploader_active,
                          MetricsLibraryInterface* metrics_lib,
+                         MetricsLibraryInterface* metrics_lib_for_tmpfs,
                          const string& diskstats_path,
                          const string& vmstats_path,
                          const string& scaling_max_freq_path,
@@ -354,6 +362,7 @@ void MetricsDaemon::Init(bool testing,
                          const base::TimeDelta& upload_interval,
                          const string& server,
                          const string& metrics_file,
+                         const string& metrics_file_for_tmpfs,
                          const string& config_root,
                          const base::FilePath& backing_dir) {
   testing_ = testing;
@@ -361,11 +370,13 @@ void MetricsDaemon::Init(bool testing,
   config_root_ = config_root;
   DCHECK(metrics_lib != nullptr);
   metrics_lib_ = metrics_lib;
+  metrics_lib_for_tmpfs_ = metrics_lib_for_tmpfs;
   backing_dir_ = backing_dir;
 
   upload_interval_ = upload_interval;
   server_ = server;
   metrics_file_ = metrics_file;
+  metrics_file_for_tmpfs_ = metrics_file_for_tmpfs;
 
   // Get ticks per second (HZ) on this system.
   // Sysconf cannot fail, so no sanity checks are needed.
@@ -520,6 +531,12 @@ int MetricsDaemon::OnInit() {
         new UploadService(new SystemProfileCache(), metrics_lib_, server_));
     upload_service_->Init(upload_interval_, metrics_file_,
                           is_official /* uploads_enabled */);
+
+    upload_service_for_tmpfs_.reset(
+        new UploadService(new SystemProfileCache(), metrics_lib_for_tmpfs_,
+                          server_));
+    upload_service_for_tmpfs_->Init(upload_interval_, metrics_file_for_tmpfs_,
+                                   is_official /* uploads_enabled */);
   }
 
   return EX_OK;

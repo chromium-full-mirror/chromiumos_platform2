@@ -172,7 +172,7 @@ bool UploadService::ReadMetrics() {
   for (const auto& sample : samples) {
     AddSample(sample);
   }
-  DLOG(INFO) << samples.size() << " samples found in uma-events";
+  DLOG(INFO) << samples.size() << " samples found in " << metrics_file_;
 
   return result;
 }

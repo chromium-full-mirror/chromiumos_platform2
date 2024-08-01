@@ -55,6 +55,7 @@ const char kFakeScalingMaxFreqPath[] = "fake-scaling-max-freq";
 const char kFakeCpuinfoMaxFreqPath[] = "fake-cpuinfo-max-freq";
 const char kMetricsServer[] = "https://clients4.google.com/uma/v2";
 const char kMetricsFilePath[] = "/var/lib/metrics/uma-events";
+const char kMetricsFilePathForTmpfs[] = "/run/lib/metrics/uma-events";
 
 void PerisistentIntegerCreationCallback(const base::FilePath& path) {
   const std::string base_name = path.BaseName().value();
@@ -94,10 +95,11 @@ class MetricsDaemonTest : public testing::Test {
 
     test_start_ = base::TimeTicks::Now();
 
-    daemon_.Init(true, false, &metrics_lib_, kFakeDiskStatsName,
-                 kFakeVmStatsName, kFakeScalingMaxFreqPath,
+    daemon_.Init(true, false, &metrics_lib_, &metrics_lib_for_tmpfs_,
+                 kFakeDiskStatsName,kFakeVmStatsName, kFakeScalingMaxFreqPath,
                  kFakeCpuinfoMaxFreqPath, base::TimeDelta::FromMinutes(30),
-                 kMetricsServer, kMetricsFilePath, "/", backing_dir_path);
+                 kMetricsServer, kMetricsFilePath, kMetricsFilePathForTmpfs,
+                 "/", backing_dir_path);
 
     CHECK(base::CreateNewTempDirectory("", &fake_temperature_dir_));
     daemon_.SetThermalZonePathBaseForTest(fake_temperature_dir_);
@@ -248,6 +250,7 @@ class MetricsDaemonTest : public testing::Test {
   // Mocks. They are strict mock so that all unexpected
   // calls are marked as failures.
   StrictMock<MetricsLibraryMock> metrics_lib_;
+  StrictMock<MetricsLibraryMock> metrics_lib_for_tmpfs_;
   // These are assigned into unique_ptrs owned by daemon_, so they don't leak.
   StrictMock<PersistentIntegerMock>* daily_active_use_mock_;
   StrictMock<PersistentIntegerMock>* kernel_crash_interval_mock_;

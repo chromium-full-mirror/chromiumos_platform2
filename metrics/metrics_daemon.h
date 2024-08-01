@@ -37,6 +37,7 @@ class MetricsDaemon : public brillo::DBusDaemon {
   void Init(bool testing,
             bool uploader_active,
             MetricsLibraryInterface* metrics_lib,
+            MetricsLibraryInterface* metrics_lib_for_tmpfs,
             const std::string& diskstats_path,
             const std::string& vmstats_path,
             const std::string& cpuinfo_max_freq_path,
@@ -44,6 +45,7 @@ class MetricsDaemon : public brillo::DBusDaemon {
             const base::TimeDelta& upload_interval,
             const std::string& server,
             const std::string& metrics_file,
+            const std::string& metrics_file_in_ram,
             const std::string& config_root,
             const base::FilePath& persistent_dir_path);
 
@@ -426,6 +428,7 @@ class MetricsDaemon : public brillo::DBusDaemon {
 
   // The metrics library handle.
   MetricsLibraryInterface* metrics_lib_;
+  MetricsLibraryInterface* metrics_lib_for_tmpfs_;
 
   // Timestamps last network state update.  This timestamp is used to
   // sample the time from the network going online to going offline so
@@ -527,8 +530,10 @@ class MetricsDaemon : public brillo::DBusDaemon {
   base::TimeDelta upload_interval_;
   std::string server_;
   std::string metrics_file_;
+  std::string metrics_file_for_tmpfs_;
 
   std::unique_ptr<UploadService> upload_service_;
+  std::unique_ptr<UploadService> upload_service_for_tmpfs_;
   std::unique_ptr<VmlogWriter> vmlog_writer_;
 
   // The backing directory for persistent integers.

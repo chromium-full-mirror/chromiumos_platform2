@@ -65,6 +65,8 @@ int main(int argc, char** argv) {
                 "Server to upload the metrics to. (needs -uploader)");
   DEFINE_string(metrics_file, "/var/lib/metrics/uma-events",
                 "File to use as a proxy for uploading the metrics");
+  DEFINE_string(metrics_file_for_tmpfs, "/run/ap/metrics/uma-events",
+                "File to use as a proxy for uploading the metrics to tmpfs");
   DEFINE_string(config_root, "/",
                 "Root of the configuration files (testing only)");
 
@@ -80,12 +82,15 @@ int main(int argc, char** argv) {
 
   base::FilePath backing_dir_path(kPersistentIntegerBackingDir);
   MetricsLibrary metrics_lib;
+  MetricsLibrary metrics_lib_for_tmpfs;
+  metrics_lib_for_tmpfs.SetOutputFile(FLAGS_metrics_file_for_tmpfs);
+
   chromeos_metrics::MetricsDaemon daemon;
   daemon.Init(FLAGS_uploader_test, FLAGS_uploader | FLAGS_uploader_test,
-              &metrics_lib, MetricsMainDiskStatsPath(), "/proc/vmstat",
+              &metrics_lib, &metrics_lib_for_tmpfs, MetricsMainDiskStatsPath(), "/proc/vmstat",
               kScalingMaxFreqPath, kCpuinfoMaxFreqPath,
               base::TimeDelta::FromSeconds(FLAGS_upload_interval_secs),
-              FLAGS_server, FLAGS_metrics_file, FLAGS_config_root,
+              FLAGS_server, FLAGS_metrics_file, FLAGS_metrics_file_for_tmpfs, FLAGS_config_root,
               backing_dir_path);
 
   if (FLAGS_uploader_test) {
