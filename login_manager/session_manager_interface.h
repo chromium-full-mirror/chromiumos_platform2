@@ -28,9 +28,6 @@ class SessionManagerInterface {
   // startup.
   virtual std::vector<std::string> GetFeatureFlags() = 0;
 
-  // Gets extra command line arguments to pass to Chrome on startup.
-  virtual std::vector<std::string> GetExtraCommandLineArguments() = 0;
-
   // Emits state change signals.
   virtual void AnnounceSessionStoppingIfNeeded() = 0;
   virtual void AnnounceSessionStopped() = 0;

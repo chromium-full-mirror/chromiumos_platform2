@@ -23,10 +23,6 @@ class MockSessionManager : public SessionManagerInterface {
   MOCK_METHOD(void, Finalize, (), (override));
   MOCK_METHOD(bool, StartDBusService, (), (override));
   MOCK_METHOD(std::vector<std::string>, GetFeatureFlags, (), (override));
-  MOCK_METHOD(std::vector<std::string>,
-              GetExtraCommandLineArguments,
-              (),
-              (override));
   MOCK_METHOD(void, AnnounceSessionStoppingIfNeeded, (), (override));
   MOCK_METHOD(void, AnnounceSessionStopped, (), (override));
   MOCK_METHOD(bool, ShouldEndSession, (std::string*), (override));

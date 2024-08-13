@@ -534,10 +534,6 @@ bool SessionManagerImpl::ShouldEndSession(std::string* reason_out) {
   return false;
 }
 
-std::vector<std::string> SessionManagerImpl::GetExtraCommandLineArguments() {
-  return device_policy_->GetExtraCommandLineArguments();
-}
-
 bool SessionManagerImpl::Initialize() {
   key_gen_->set_delegate(this);
 
