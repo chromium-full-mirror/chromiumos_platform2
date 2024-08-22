@@ -532,6 +532,9 @@ TEST_F(DatapathTest, StartRoutingNamespace) {
   Verify_iptables(runner_, IpFamily::kDual,
                   "mangle -A PREROUTING_arc_ns0 -j apply_vpn_mark -w");
 
+  EXPECT_CALL(system_, SysNetSet(System::SysNet::kIPv4DefaultTTL, "65", ""));
+  EXPECT_CALL(system_, SysNetSet(System::SysNet::kIPv6HopLimit, "65", "veth0"));
+
   ConnectedNamespace nsinfo = {};
   nsinfo.pid = kTestPID;
   nsinfo.netns_name = "netns_foo";
