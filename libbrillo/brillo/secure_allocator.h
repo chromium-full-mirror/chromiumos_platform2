@@ -6,12 +6,12 @@
 #define LIBBRILLO_BRILLO_SECURE_ALLOCATOR_H_
 
 #include <errno.h>
+#include <string.h>
 #include <sys/mman.h>
 #include <unistd.h>
 
 #include <limits>
 #include <memory>
-
 #include <openssl/crypto.h>
 
 #include <base/callback_helpers.h>

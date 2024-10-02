@@ -16,7 +16,7 @@
 #include <base/strings/string_tokenizer.h>
 #include <base/strings/string_util.h>
 #include <brillo/http/http_transport.h>
-#include <chromeos/dbus/service_constants.h>
+//#include <chromeos/dbus/service_constants.h>
 #include <dbus/bus.h>
 #include <dbus/message.h>
 #include <dbus/object_proxy.h>
@@ -25,9 +25,11 @@ namespace {
 bool ParseProxyInfo(dbus::Response* response,
                     std::vector<std::string>* proxies_out) {
   DCHECK(proxies_out);
+  // TODO(b/371631841): Replace constants with hardcoded strings
+  // once system_api package is included.
   if (!response) {
-    LOG(ERROR) << chromeos::kNetworkProxyServiceName << " D-Bus call to "
-               << chromeos::kNetworkProxyServiceResolveProxyMethod << " failed";
+    LOG(ERROR) << "/org/chromium/NetworkProxyService" << " D-Bus call to "
+               << "ResolveProxy" << " failed";
     proxies_out->assign({brillo::http::kDirectProxy});
     return false;
   }
@@ -35,8 +37,10 @@ bool ParseProxyInfo(dbus::Response* response,
   std::string proxy_info;
   std::string proxy_err;
   if (!reader.PopString(&proxy_info) || !reader.PopString(&proxy_err)) {
-    LOG(ERROR) << chromeos::kNetworkProxyServiceName << " D-Bus call to "
-               << chromeos::kNetworkProxyServiceResolveProxyMethod
+    // TODO(b/371631841): Replace constants with hardcoded strings
+    // once system_api package is included.
+    LOG(ERROR) << "/org/chromium/NetworkProxyService" << " D-Bus call to "
+               << "ResolveProxy"
                << " returned an invalid D-Bus response";
     proxies_out->assign({brillo::http::kDirectProxy});
     return false;
@@ -103,12 +107,14 @@ namespace http {
 bool GetChromeProxyServers(scoped_refptr<dbus::Bus> bus,
                            const std::string& url,
                            std::vector<std::string>* proxies_out) {
+  // TODO(b/371631841): Replace constants with hardcoded strings
+  // once system_api package is included.
   dbus::ObjectProxy* proxy =
-      bus->GetObjectProxy(chromeos::kNetworkProxyServiceName,
-                          dbus::ObjectPath(chromeos::kNetworkProxyServicePath));
+      bus->GetObjectProxy("/org/chromium/NetworkProxyService",
+                          dbus::ObjectPath("/org/chromium/NetworkProxyService"));
   dbus::MethodCall method_call(
-      chromeos::kNetworkProxyServiceInterface,
-      chromeos::kNetworkProxyServiceResolveProxyMethod);
+      "org.chromium.NetworkProxyServiceInterface",
+      "ResolveProxy");
   dbus::MessageWriter writer(&method_call);
   writer.AppendString(url);
   std::unique_ptr<dbus::Response> response = proxy->CallMethodAndBlock(
@@ -119,12 +125,14 @@ bool GetChromeProxyServers(scoped_refptr<dbus::Bus> bus,
 void GetChromeProxyServersAsync(scoped_refptr<dbus::Bus> bus,
                                 const std::string& url,
                                 const GetChromeProxyServersCallback& callback) {
+  // TODO(b/371631841): Replace constants with hardcoded strings
+  // once system_api package is included.
   dbus::ObjectProxy* proxy =
-      bus->GetObjectProxy(chromeos::kNetworkProxyServiceName,
-                          dbus::ObjectPath(chromeos::kNetworkProxyServicePath));
+      bus->GetObjectProxy("/org/chromium/NetworkProxyService",
+                          dbus::ObjectPath("/org/chromium/NetworkProxyService"));
   dbus::MethodCall method_call(
-      chromeos::kNetworkProxyServiceInterface,
-      chromeos::kNetworkProxyServiceResolveProxyMethod);
+      "org.chromium.NetworkProxyServiceInterface",
+      "ResolveProxy");
   dbus::MessageWriter writer(&method_call);
   writer.AppendString(url);
   proxy->CallMethod(&method_call, dbus::ObjectProxy::TIMEOUT_USE_DEFAULT,
@@ -136,12 +144,14 @@ void GetChromeProxyServersWithOverrideAsync(
     const std::string& url,
     const SystemProxyOverride system_proxy_override,
     const GetChromeProxyServersCallback& callback) {
+  // TODO(b/371631841): Replace constants with hardcoded strings
+  // once system_api package is included.
   dbus::ObjectProxy* proxy =
-      bus->GetObjectProxy(chromeos::kNetworkProxyServiceName,
-                          dbus::ObjectPath(chromeos::kNetworkProxyServicePath));
+      bus->GetObjectProxy("/org/chromium/NetworkProxyService",
+                          dbus::ObjectPath("/org/chromium/NetworkProxyService"));
   dbus::MethodCall method_call(
-      chromeos::kNetworkProxyServiceInterface,
-      chromeos::kNetworkProxyServiceResolveProxyMethod);
+      "org.chromium.NetworkProxyServiceInterface",
+      "ResolveProxy");
   dbus::MessageWriter writer(&method_call);
   writer.AppendString(url);
   writer.AppendInt32(system_proxy_override);

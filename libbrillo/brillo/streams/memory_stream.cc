@@ -4,8 +4,8 @@
 
 #include <brillo/streams/memory_stream.h>
 
+#include <cstring>
 #include <limits>
-
 #include <base/bind.h>
 #include <brillo/message_loops/message_loop.h>
 #include <brillo/streams/stream_errors.h>

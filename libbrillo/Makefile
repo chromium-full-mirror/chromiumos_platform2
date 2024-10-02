@@ -1,97 +1,98 @@
-# Copyright (c) 2012 The Chromium Authors. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+#
+# TODO(b/371112401): Add license information
+#
 
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libbrillo
-PKG_VERSION:=1.0
 PKG_RELEASE:=1
-
-SOURCE_DIR:=$(TOPDIR)/package/gwifi/platform2/libbrillo
-PKG_BUILD_PARALLEL:=1
-PKG_LICENSE:=BSD-3
 
 include $(INCLUDE_DIR)/package.mk
 
-define Package/libbrillo/Default
+define Package/libbrillo
   SECTION:=gwifi
   CATEGORY:=Nest WiFi Mesh Solutions
-  TITLE:=ChromiumOS's libbrillo library
-  SUBMENU:=libbrillo libraries
+  SUBMENU:=Libs
+  DEPENDS:=+protobuf +libstdcpp +libchrome +libdevmapper
+  TITLE:=Base library for Chromium OS
 endef
 
 define Package/libbrillo/description
-libbrillo is a shared library meant to hold common utility
-code that we deem useful for platform projects.
+  Base library for Chromium OS
 endef
 
-define Package/libbrillo
-$(call Package/libbrillo/Default)
-  TITLE:=Shared libbrillo for target
-endef
+ifeq ($(ARCH),arm)
+        ARM_ARCH=true
+        X86_ARCH=false
+else
+        X86_ARCH=true
+        ARM_ARCH=false
+endif
 
-define Package/libbrillo-binder
-$(call Package/libbrillo/Default)
-  TITLE:=Shared binder library for target
-endef
+LIBBRILLO_CFLAGS:=["-O2", "-pipe", "-std=gnu11", "-I$(TOOLCHAIN_DIR)/include"]
+LIBBRILLO_CPPFLAGS:=["-D_LARGEFILE_SOURCE","-D_LARGEFILE64_SOURCE","-DNDEBUG"]
+LIBBRILLO_CXXFLAGS:=["-Os","-pipe","-Wunused-function","-Wno-error", \
+  "-std=c++17","-fno-exceptions","-fno-unwind-tables", \
+  "-fno-asynchronous-unwind-tables","-Wno-implicit-fallthrough", \
+  "-fpermissive","-fPIC","-DOS_CHROMEOS=1","-I$(BUILD_DIR)/modp_b64", \
+  "-I$(STAGING_DIR)/usr/include","-I$(STAGING_DIR)/usr/include/glib-2.0", \
+  "-I$(STAGING_DIR)/usr/include/nspr","-I$(STAGING_DIR)/usr/include/nss", \
+  "-I$(STAGING_DIR)/usr/include/dbus-1.0","-I$(BUILD_DIR)/libchrome", \
+  "-I$(BUILD_DIR)/lvm2-normal/LVM2.2.03.16/tools/", \
+  "-I$(STAGING_DIR)/usr/lib/dbus-1.0/include","-D_FILE_OFFSET_BITS=64",\
+  "-D_LARGEFILE_SOURCE","-D_LARGEFILE64_SOURCE","-DNDEBUG"]
+LIBBRILLO_LDFLAGS:=["-Wl,-O2","-Wl,--as-needed","-Wl,-Bdynamic"]
 
-define Package/libbrillo-dbus
-$(call Package/libbrillo/Default)
-  TITLE:=Shared dbus library for target
-endef
+USE_FLAGS:={arm=$(ARM_ARCH) abi_x86_64=$(X86_ARCH) amd64=$(X86_ARCH) \
+  fuzzer=false cros_host=true test=false dbus=true device_mapper=true \
+  udev=false profiling=false tcmalloc=false}
 
-define Package/libbrillo-minijail
-$(call Package/libbrillo/Default)
-  TITLE:=Shared minijail library for target
-endef
+GN_ARGS:=platform_subdir="libbrillo" OS="linux" \
+	 platform2_root="$(BUILD_DIR)" \
+	 sysroot="$(STAGING_DIR)" \
+	 pkg_config="$(STAGING_DIR_HOST)/bin/pkg-config" \
+	 cc="$(TARGET_CC)" ar="$(TARGET_AR)" build_root="$(PKG_BUILD_DIR)/"\
+	 enable_exceptions=false \
+	 libbase_ver="860220" \
+	 cxx="$(TARGET_CXX)" \
+	 libdir="$(STAGING_DIR_ROOT)/usr/lib" sysroot="$(STAGING_DIR)" \
+         external_cxxflags=$(LIBBRILLO_CXXFLAGS) \
+	 external_cflags=$(LIBBRILLO_CFLAGS) \
+	 external_cppflags=$(LIBBRILLO_CPPFLAGS) \
+	 external_ldflags=$(LIBBRILLO_LDFLAGS) \
+	 use=$(USE_FLAGS)
 
-define Package/libbrillo-stream
-$(call Package/libbrillo/Default)
-  TITLE:=Shared stream library for target
-endef
+PLATFORM2_DIR=$(TOPDIR)/package/gwifi/external/platform2
+HEADER_DIRS:=brillo brillo/message_loops brillo/daemons brillo/blkdev_utils \
+  brillo/dbus brillo/udev brillo/files brillo/grpc brillo/streams \
+  brillo/process brillo/http brillo/errors brillo/strings
 
-define Package/libbrillo-http
-$(call Package/libbrillo/Default)
-  TITLE:=Shared http library for target
-endef
-
-define Package/libbrillo-policy
-$(call Package/libbrillo/Default)
-  TITLE:=Shared policy library for target
-endef
-
-define Build/Compile
+define Build/Prepare
+	$(CP) $(PLATFORM2_DIR)/libbrillo/ $(BUILD_DIR)/
+	$(CP) $(PLATFORM2_DIR)/common-mk/ $(BUILD_DIR)/
+	$(CP) $(PLATFORM2_DIR)/.gn $(BUILD_DIR)/
+	$(call Build/Prepare/Default)
 endef
 
 define Build/Configure
+	cd $(PKG_BUILD_DIR) && $(STAGING_DIR_HOSTPKG)/bin/gn gen \
+	  '--root=$(BUILD_DIR)' '--args=$(GN_ARGS)' $(PKG_BUILD_DIR)/out/Default
 endef
 
-define Package/libbrillo/install
+define Build/Compile
+	cd $(PKG_BUILD_DIR) && $(STAGING_DIR_HOST)/bin/ninja \
+	  -C $(PKG_BUILD_DIR)/out/Default libbrillo:all
 endef
 
-define Package/libbrillo-binder/install
-endef
-
-define Package/libbrillo-dbus/install
-endef
-
-define Package/libbrillo-minijail/install
-endef
-
-define Package/libbrillo-stream/install
-endef
-
-define Package/libbrillo-http/install
-endef
-
-define Package/libbrillo-policy/install
+define Build/InstallDev
+	$(INSTALL_DIR) $(1)/usr/lib/pkgconfig
+	$(INSTALL_DIR) $(1)/usr/include
+	$(INSTALL_DIR) $(1)/usr/lib
+	$(CP) $(PKG_BUILD_DIR)/out/Default/obj/libbrillo/*.pc* $(1)/usr/lib/pkgconfig
+	$(CP) $(PKG_BUILD_DIR)/out/Default/lib/*.so $(1)/usr/lib
+	$(foreach header_dir,$(HEADERS_DIRS), \
+		$(INSTALL_DIR) $(1)/usr/include/$(header_dir); \
+		$(INSTALL_DATA) $(PKG_BUILD_DIR)/$(header_dir)/*.h $(1)/usr/include/$(header_dir)/;)
 endef
 
 $(eval $(call BuildPackage,libbrillo))
-$(eval $(call BuildPackage,libbrillo-binder))
-$(eval $(call BuildPackage,libbrillo-dbus))
-$(eval $(call BuildPackage,libbrillo-minijail))
-$(eval $(call BuildPackage,libbrillo-stream))
-$(eval $(call BuildPackage,libbrillo-http))
-$(eval $(call BuildPackage,libbrillo-policy))

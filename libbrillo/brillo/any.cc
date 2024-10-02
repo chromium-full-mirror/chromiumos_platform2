@@ -6,6 +6,7 @@
 #include <brillo/any.h>
 
 #include <algorithm>
+#include <cstring>
 #include <utility>
 
 namespace brillo {

@@ -7,6 +7,7 @@
 #ifndef LIBBRILLO_BRILLO_ANY_INTERNAL_IMPL_H_
 #define LIBBRILLO_BRILLO_ANY_INTERNAL_IMPL_H_
 
+#include <cstring>
 #include <type_traits>
 #include <typeinfo>
 #include <utility>

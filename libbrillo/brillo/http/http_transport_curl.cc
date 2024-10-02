@@ -195,13 +195,13 @@ std::shared_ptr<http::Connection> Transport::CreateConnection(
 
   if (code == CURLE_OK && dl_speedtest_mode_.has_value()) {
     code =
-        curl_interface_->EasySetOptInt(curl_handle, CURLOPT_DL_SPEEDTEST_MODE,
+        curl_interface_->EasySetOptInt(curl_handle, CURLOPT_LOW_SPEED_TIME,
                                        dl_speedtest_mode_.value() ? 1 : 0);
   }
 
   if (code == CURLE_OK && ul_speedtest_mode_.has_value()) {
     code =
-        curl_interface_->EasySetOptInt(curl_handle, CURLOPT_UL_SPEEDTEST_MODE,
+        curl_interface_->EasySetOptInt(curl_handle, CURLOPT_LOW_SPEED_TIME,
                                        ul_speedtest_mode_.value() ? 1 : 0);
   }
 

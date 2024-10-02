@@ -6,7 +6,9 @@
 //
 #ifndef LIBBRILLO_BRILLO_ASAN_H_
 #define LIBBRILLO_BRILLO_ASAN_H_
-
+#if 1
+#define BRILLO_DISABLE_ASAN
+#else
 #if defined(__has_feature) && __has_feature(address_sanitizer)
 // ASan is enabled.
 #define BRILLO_ASAN_BUILD 1
@@ -15,6 +17,7 @@
 #define BRILLO_DISABLE_ASAN __attribute__((no_sanitize("address")))
 #else
 #define BRILLO_DISABLE_ASAN
+#endif
 #endif
 
 #endif  // LIBBRILLO_BRILLO_ASAN_H_
