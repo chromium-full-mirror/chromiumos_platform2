@@ -15,7 +15,9 @@
 #include <base/macros.h>
 #include <gtest/gtest_prod.h>  // for FRIEND_TEST
 
+#ifdef ENABLE_POLICY
 #include "policy/libpolicy.h"
+#endif
 
 class MetricsLibraryInterface {
  public:
@@ -213,8 +215,10 @@ class MetricsLibrary : public MetricsLibraryInterface {
   friend class CMetricsLibraryTest;
   friend class MetricsLibraryTest;
 
+#ifdef ENABLE_POLICY
   // This function is used by tests only to mock the device policies.
   void SetPolicyProvider(policy::PolicyProvider* provider);
+#endif
 
   // Time at which we last checked if metrics were enabled.
   static time_t cached_enabled_time_;
@@ -225,7 +229,9 @@ class MetricsLibrary : public MetricsLibraryInterface {
   base::FilePath uma_events_file_;
   base::FilePath consent_file_;
 
+#ifdef ENABLE_POLICY
   std::unique_ptr<policy::PolicyProvider> policy_provider_;
+#endif
 };
 
 #endif  // METRICS_METRICS_LIBRARY_H_

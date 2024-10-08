@@ -45,7 +45,6 @@ shared_library("libmetrics") {
   pkg_deps = [
     "libbrillo",
     "libchrome",
-    "libsession_manager-client",
   ]
   sources = [
     "c_metrics_library.cc",
@@ -58,7 +57,6 @@ shared_library("libmetrics") {
   ]
   configs += [ "//common-mk:visibility_default" ]
   cflags_cc = [ "-fno-exceptions" ]
-  libs = [ "policy" ]
   include_dirs = [ "." ]
   if (use.metrics_uploader) {
     defines = [ "USE_METRICS_UPLOADER=1" ]
@@ -70,7 +68,6 @@ pkg_config("target_defaults_pkg_deps") {
     "dbus-1",
     "libbrillo",
     "libchrome",
-    "re2",
   ]
 }
 
@@ -129,12 +126,6 @@ static_library("libupload_service") {
     ":libmetrics",
     ":metrics_proto",
   ]
-  all_dependent_pkg_deps = [ "vboot_host" ]
-  if (use.fuzzer) {
-    all_dependent_pkg_deps += [ "protobuf" ]
-  } else {
-    all_dependent_pkg_deps += [ "protobuf-lite" ]
-  }
 }
 
 proto_library("metrics_proto") {

@@ -13,7 +13,9 @@
 #include <base/strings/string_util.h>
 #include <base/strings/stringprintf.h>
 #include <errno.h>
+#ifdef ENABLE_SESSION_MANAGER
 #include <session_manager/dbus-proxies.h>
+#endif
 #include <sys/file.h>
 #include <sys/stat.h>
 
@@ -24,9 +26,13 @@
 #include "metrics/serialization/metric_sample.h"
 #include "metrics/serialization/serialization_utils.h"
 
+#ifdef ENABLE_POLICY
 #include "policy/device_policy.h"
+#endif
 
+#ifdef ENABLE_SESSION_MANAGER
 using org::chromium::SessionManagerInterfaceProxy;
+#endif
 
 namespace {
 
@@ -105,15 +111,17 @@ bool MetricsLibrary::IsGuestMode() {
   if (access("/run/state/logged-in", F_OK) != 0)
     return false;
 
+  bool is_guest = false;
+#ifdef ENABLE_SESSION_MANAGER
   dbus::Bus::Options options;
   options.bus_type = dbus::Bus::SYSTEM;
   scoped_refptr<dbus::Bus> bus = new dbus::Bus(options);
   CHECK(bus->Connect());
 
   brillo::ErrorPtr error;
-  bool is_guest = false;
   SessionManagerInterfaceProxy session_manager_interface(bus);
   session_manager_interface.IsGuestSessionActive(&is_guest, &error);
+#endif
   return is_guest;
 }
 
@@ -169,6 +177,7 @@ bool MetricsLibrary::AreMetricsEnabled() {
   if (this_check_time != cached_enabled_time_) {
     cached_enabled_time_ = this_check_time;
 
+#ifdef ENABLE_POLICY
     if (!policy_provider_.get())
       policy_provider_.reset(new policy::PolicyProvider());
     policy_provider_->Reload();
@@ -176,6 +185,7 @@ bool MetricsLibrary::AreMetricsEnabled() {
     const policy::DevicePolicy* device_policy = nullptr;
     if (policy_provider_->device_policy_is_loaded())
       device_policy = &policy_provider_->GetDevicePolicy();
+#endif
 
     // If policy couldn't be loaded or the metrics policy is not set, default to
     // enabled for enterprise-enrolled devices, cf. https://crbug/456186, or
@@ -184,6 +194,7 @@ bool MetricsLibrary::AreMetricsEnabled() {
     // TODO(pastarmovj)
     std::string id_unused;
     bool metrics_enabled = false;
+#ifdef ENABLE_POLICY
     bool metrics_policy = false;
     if (device_policy && device_policy->GetMetricsEnabled(&metrics_policy)) {
       metrics_enabled = metrics_policy;
@@ -196,6 +207,7 @@ bool MetricsLibrary::AreMetricsEnabled() {
       VLOG(2) << "AreMetricsEnabled: " << metrics_enabled
               << "(consent ID file)";
     }
+#endif
     cached_enabled_ = (metrics_enabled && !IsGuestMode());
   }
   return cached_enabled_;
@@ -302,9 +314,11 @@ bool MetricsLibrary::SendCrashToUMA(const char* crash_kind) {
       uma_events_file_.value());
 }
 
+#ifdef ENABLE_POLICY
 void MetricsLibrary::SetPolicyProvider(policy::PolicyProvider* provider) {
   policy_provider_.reset(provider);
 }
+#endif
 
 bool MetricsLibrary::SendCrosEventToUMA(const std::string& event) {
   for (size_t i = 0; i < base::size(kCrosEventNames); i++) {
