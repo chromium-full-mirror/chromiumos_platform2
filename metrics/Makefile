@@ -18,6 +18,7 @@ define Package/metrics
 endef
 
 METRICS_CFLAGS:=["-O2", "-pipe", "-std=gnu11", "-I$(TOOLCHAIN_DIR)/include"]
+METRICS_CPPFLAGS:=["-DUSE_RTTI_FOR_TYPE_TAGS"]
 METRICS_CXXFLAGS:=["-Os","-pipe","-Wunused-function","-Wno-error", \
   "-std=c++17","-fno-exceptions","-fno-unwind-tables", \
   "-fno-asynchronous-unwind-tables","-Wno-implicit-fallthrough", \
@@ -37,6 +38,7 @@ GN_ARGS:=platform_subdir="metrics" OS="linux" \
 	 libdir="$(STAGING_DIR_ROOT)/usr/lib" sysroot="$(STAGING_DIR)" \
          external_cxxflags=$(METRICS_CXXFLAGS) \
 	 external_cflags=$(METRICS_CFLAGS) \
+	 external_cppflags=$(METRICS_CPPFLAGS) \
 	 external_ldflags=$(METRICS_LDFLAGS) \
 	 use=$(USE_FLAGS)
 

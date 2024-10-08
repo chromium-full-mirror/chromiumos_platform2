@@ -30,7 +30,8 @@ else
 endif
 
 LIBBRILLO_CFLAGS:=["-O2", "-pipe", "-std=gnu11", "-I$(TOOLCHAIN_DIR)/include"]
-LIBBRILLO_CPPFLAGS:=["-D_LARGEFILE_SOURCE","-D_LARGEFILE64_SOURCE","-DNDEBUG"]
+LIBBRILLO_CPPFLAGS:=["-D_LARGEFILE_SOURCE","-D_LARGEFILE64_SOURCE","-DNDEBUG", \
+  "-DUSE_RTTI_FOR_TYPE_TAGS"]
 LIBBRILLO_CXXFLAGS:=["-Os","-pipe","-Wunused-function","-Wno-error", \
   "-std=c++17","-fno-exceptions","-fno-unwind-tables", \
   "-fno-asynchronous-unwind-tables","-Wno-implicit-fallthrough", \
