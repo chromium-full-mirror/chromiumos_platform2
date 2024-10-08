@@ -4,6 +4,8 @@
 
 #include "shill/net/shill_time.h"
 
+#include <cstring>
+
 #include <base/format_macros.h>
 #include <base/strings/stringprintf.h>
 

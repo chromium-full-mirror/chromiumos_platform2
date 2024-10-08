@@ -10,6 +10,7 @@
 #include <sys/socket.h>
 #include <sys/utsname.h>
 
+#include <cstring>
 #include <string>
 #include <utility>
 

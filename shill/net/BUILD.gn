@@ -33,11 +33,6 @@ pkg_config("target_defaults") {
   pkg_deps = [ "libchrome" ]
 }
 
-write_deps("libshill-net_deps") {
-  pkg_deps = []
-  target = "libshill-net"
-}
-
 net_sources = [
   "../logging.cc",
   "../scope_logger.cc",
@@ -79,7 +74,6 @@ shared_library("libshill-net") {
     "-Wno-unused-variable",
     "-Wno-unused-function",
   ]
-  deps = [ ":${target_name}_deps" ]
 }
 
 if (use.fuzzer) {

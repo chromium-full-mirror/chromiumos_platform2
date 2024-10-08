@@ -1,0 +1,7 @@
+bslot=860220
+
+Name: libshill-net
+Description: Shill networking component interface library
+Version: ${bslot}
+Requires.private: 
+Libs: -lshill-net

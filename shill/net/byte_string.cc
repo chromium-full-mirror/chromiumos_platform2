@@ -7,6 +7,7 @@
 #include <netinet/in.h>
 
 #include <algorithm>
+#include <cstring>
 
 #include <base/strings/string_number_conversions.h>
 

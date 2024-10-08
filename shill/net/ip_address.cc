@@ -6,6 +6,7 @@
 
 #include <arpa/inet.h>
 
+#include <cstring>
 #include <limits>
 
 #include <base/check.h>

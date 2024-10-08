@@ -7,6 +7,8 @@
 #include <linux/netlink.h>
 #include <sys/socket.h>
 
+#include <cstring>
+
 #include <base/logging.h>
 
 #include "shill/net/sockets.h"
