@@ -64,7 +64,7 @@ GN_ARGS:=platform_subdir="libbrillo" OS="linux" \
 	 use=$(USE_FLAGS)
 
 PLATFORM2_DIR=$(TOPDIR)/package/gwifi/external/platform2
-HEADER_DIRS:=brillo brillo/message_loops brillo/daemons brillo/blkdev_utils \
+HEADERS_DIRS:=brillo brillo/message_loops brillo/daemons brillo/blkdev_utils \
   brillo/dbus brillo/udev brillo/files brillo/grpc brillo/streams \
   brillo/process brillo/http brillo/errors brillo/strings
 
