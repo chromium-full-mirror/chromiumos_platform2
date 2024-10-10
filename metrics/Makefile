@@ -13,7 +13,7 @@ define Package/metrics
   SECTION:=gwifi
   CATEGORY:=Nest WiFi Mesh Solutions
   SUBMENU:=Libs
-  DEPENDS:=+protobuf
+  DEPENDS:=+protobuf +libchrome +libbrillo
   TITLE:=Base library for Chromium OS
 endef
 
