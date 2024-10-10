@@ -20,11 +20,15 @@ template("generate_dbus_adaptors") {
     sources = invoker.sources
     script = "//common-mk/file_generator_wrapper.py"
     outputs = [ "${h_dir}/{{source_name_part}}.h" ]
+    bin_path = ""
+    if (target_os == "prplos") {
+      bin_path = "${sysroot}/../hostpkg/bin/"
+    }
     args = [
-      "generate-chromeos-dbus-bindings",
+      "${bin_path}generate-chromeos-dbus-bindings",
       "{{source}}",
       "--service-config=${service_config}",
-      "--adaptor=${h_dir}/{{source_name_part}}.h",
+      "--adaptor=" + rebase_path(h_dir) + "/{{source_name_part}}.h",
     ]
   }
 }

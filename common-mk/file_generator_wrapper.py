@@ -12,8 +12,15 @@ path/to/file_generator_wrapper.py program arg1 ...
 will run the program with the args.
 """
 
+import os
 import subprocess
 import sys
 
-
-subprocess.check_call(sys.argv[1:])
+# Append staging directory to LD_LIBRARY_PATH on prlos
+staging_dir = os.getenv('STAGING_DIR_HOSTPKG')
+if staging_dir:
+  ld_library_path = os.environ.get('LD_LIBRARY_PATH', '')
+  new_ld_library_path = f"{staging_dir}/lib64:{ld_library_path}"
+  subprocess.check_call(sys.argv[1:], env={**os.environ, 'LD_LIBRARY_PATH': new_ld_library_path})
+else:
+  subprocess.check_call(sys.argv[1:])

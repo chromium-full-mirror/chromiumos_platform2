@@ -25,8 +25,11 @@ group("all") {
 default_pkg_deps = [
   "libbrillo",
   "libchrome",
-  "libpermission_broker-client",
 ]
+
+if (target_os != "prplos") {
+  default_pkg_deps += [ "libpermission_broker-client" ]
+}
 
 pkg_config("target_defaults") {
   include_dirs = [ "." ]
