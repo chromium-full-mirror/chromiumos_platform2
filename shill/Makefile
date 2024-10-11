@@ -22,9 +22,9 @@ LIBSHILLNET_CPPFLAGS:=["-DUSE_RTTI_FOR_TYPE_TAGS"]
 LIBSHILLNET_CXXFLAGS:=["-Os","-pipe","-Wunused-function","-Wno-error", \
   "-std=c++17","-fno-exceptions","-fno-unwind-tables", \
   "-fno-asynchronous-unwind-tables","-Wno-implicit-fallthrough", \
-  "-fpermissive","-fPIC","-DOS_CHROMEOS=1","-I$(STAGING_DIR)/usr/include", \
-  "-I$(BUILD_DIR)/libchrome","-I$(BUILD_DIR)/libbrillo"]
-LIBSHILLNET_LDFLAGS:=["-Wl,-O2","-Wl,--as-needed","-Wl,-Bdynamic"]
+  "-fpermissive","-fPIC","-DOS_CHROMEOS=1","-I$(STAGING_DIR)/usr/include"]
+LIBSHILLNET_LDFLAGS:=["-Wl,-O2","-Wl,--as-needed","-Wl,-Bdynamic",\
+  "-L$(STAGING_DIR_ROOT)/usr/lib"]
 
 USE_FLAGS:={fuzzer=false cros_host=true test=false profiling=false \
   tcmalloc=false}
@@ -35,7 +35,7 @@ GN_ARGS:=platform_subdir="shill/net" OS="linux" \
 	 pkg_config="$(STAGING_DIR_HOST)/bin/pkg-config" \
 	 cc="$(TARGET_CC)" ar="$(TARGET_AR)" build_root="$(PKG_BUILD_DIR)/"\
 	 cxx="$(TARGET_CXX)" \
-	 libdir="$(STAGING_DIR_ROOT)/usr/lib" sysroot="$(STAGING_DIR)" \
+	 libdir="$(STAGING_DIR_ROOT)/usr/lib" \
          external_cxxflags=$(LIBSHILLNET_CXXFLAGS) \
 	 external_cflags=$(LIBSHILLNET_CFLAGS) \
 	 external_cppflags=$(LIBSHILLNET_CPPFLAGS) \
@@ -62,11 +62,14 @@ define Build/Compile
 endef
 
 define Build/InstallDev
-	$(INSTALL_DIR) $(1)/usr/lib
 	$(INSTALL_DIR) $(1)/usr/lib/pkgconfig
 	$(INSTALL_DIR) $(1)/usr/include/shill/net
 	$(CP) $(BUILD_DIR)/shill/net/*.h $(1)/usr/include/shill/net
 	$(CP) $(BUILD_DIR)/shill/net/libshill-net.pc $(1)/usr/lib/pkgconfig
+endef
+
+define Package/$(PKG_NAME)/install
+	$(INSTALL_DIR) $(1)/usr/lib
 	$(CP) $(PKG_BUILD_DIR)/out/Default/lib/libshill-net.so $(1)/usr/lib
 endef
 
