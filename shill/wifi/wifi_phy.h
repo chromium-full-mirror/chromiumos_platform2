@@ -5,7 +5,9 @@
 #ifndef SHILL_WIFI_WIFI_PHY_H_
 #define SHILL_WIFI_WIFI_PHY_H_
 
+#if defined(ENABLE_REVEN_WIFI_FIXUP)
 #include <linux/nl80211.h>
+#endif  // ENABLE_REVEN_WIFI_FIXUP
 
 #include <map>
 #include <set>
@@ -190,11 +192,13 @@ class WiFiPhy {
   FRIEND_TEST(WiFiPhyTest, RemovalCandidateSet2);
   FRIEND_TEST(WiFiPhyTest, GetAllCandidates);
   FRIEND_TEST(WiFiPhyTest, GetAllCandidates_empty);
+#if defined(ENABLE_REVEN_WIFI_FIXUP)
   FRIEND_TEST(WiFiPhyTest, AddDefaultCombinationForType);
   FRIEND_TEST(WiFiPhyTest, AddDefaultCombinationForType_SameTypeDifferentLimit);
   FRIEND_TEST(WiFiPhyTest, AddDefaultCombinationForType_SameTypeDifferentMax);
   FRIEND_TEST(WiFiPhyTest,
               AddDefaultCombinationForType_SameTypeDifferentChannels);
+#endif  // ENABLE_REVEN_WIFI_FIXUP
 
   // Represents an interface under consideration for concurrent operation.
   // Contains the relevant bits of information about a WiFi interface which are
@@ -267,11 +271,13 @@ class WiFiPhy {
 
   void DumpFrequencies() const;
 
+#if defined(ENABLE_REVEN_WIFI_FIXUP)
   // The NL80211 API specifies that for each supported interface type, there
   // exists an implicitly supported concurrency combination which supports
   // exactly 1 instance of the interface on a single channel. This function
   // adds this implicit combination for |iftype|, if it doesn't already exist.
   void AddDefaultCombinationForType(nl80211_iftype iftype);
+#endif  // ENABLE_REVEN_WIFI_FIXUP
 
   // Helper for interface concurrency checking.
   static bool CombSupportsConcurrency(

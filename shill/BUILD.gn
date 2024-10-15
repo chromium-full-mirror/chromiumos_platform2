@@ -96,6 +96,10 @@ pkg_config("target_defaults") {
     defines += [ "DISABLE_WAKE_ON_WIFI" ]
   }
 
+  if (use.reven_wifi_fixup) {
+    defines += [ "ENABLE_REVEN_WIFI_FIXUP" ]
+  }
+
   if (!use.wpa3_sae) {
     # Currently only Marvell based boards do not support WPA3.  These
     # also do not support OWE so this define reflects both.

@@ -4,7 +4,9 @@
 
 #include "shill/wifi/wifi_phy.h"
 
+#if defined(ENABLE_REVEN_WIFI_FIXUP)
 #include <linux/nl80211.h>
+#endif  // ENABLE_REVEN_WIFI_FIXUP
 
 #include <algorithm>
 #include <iterator>
@@ -901,6 +903,7 @@ TEST_F(WiFiPhyTest, ParseInterfaceTypes) {
   EXPECT_TRUE(wifi_phy_.SupportAPMode());
   EXPECT_TRUE(wifi_phy_.SupportP2PMode());
 
+#if defined(ENABLE_REVEN_WIFI_FIXUP)
   EXPECT_TRUE(SupportsConcurrency({NL80211_IFTYPE_STATION}));
   EXPECT_TRUE(SupportsConcurrency({NL80211_IFTYPE_AP}));
   EXPECT_TRUE(SupportsConcurrency({NL80211_IFTYPE_MONITOR}));
@@ -914,6 +917,7 @@ TEST_F(WiFiPhyTest, ParseInterfaceTypes) {
   EXPECT_FALSE(SupportsConcurrency({NL80211_IFTYPE_MESH_POINT}));
   EXPECT_FALSE(SupportsConcurrency({NL80211_IFTYPE_OCB}));
   EXPECT_FALSE(SupportsConcurrency({NL80211_IFTYPE_NAN}));
+#endif  // ENABLE_REVEN_WIFI_FIXUP
 }
 
 TEST_F(WiFiPhyTest, ParseNoAPSTAConcurrencySingleChannel) {
@@ -1785,6 +1789,7 @@ TEST_F(WiFiPhyTest, GetAllCandidates_empty) {
   AssertRemovalCandidateSetOrder(candidates, expected_order);
 }
 
+#if defined(ENABLE_REVEN_WIFI_FIXUP)
 TEST_F(WiFiPhyTest, AddDefaultCombinationForType) {
   ConcurrencyCombinationSet defaultCombinationsForAPAndSTA = {
       (struct ConcurrencyCombination){
@@ -1863,5 +1868,6 @@ TEST_F(WiFiPhyTest, AddDefaultCombinationForType_SameTypeDifferentChannels) {
   wifi_phy_.AddDefaultCombinationForType(NL80211_IFTYPE_AP);
   ASSERT_EQ(wifi_phy_.concurrency_combs_.size(), 2);
 }
+#endif  // ENABLE_REVEN_WIFI_FIXUP
 
 }  // namespace shill

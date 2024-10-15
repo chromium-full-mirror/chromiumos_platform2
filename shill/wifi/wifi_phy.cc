@@ -92,8 +92,10 @@ void WiFiPhy::ParseInterfaceTypes(const Nl80211Message& nl80211_message) {
         continue;
       }
       supported_ifaces_.insert(nl80211_iftype(iface));
+#if defined(ENABLE_REVEN_WIFI_FIXUP)
       // Add the default concurrency combination for this interface type.
       AddDefaultCombinationForType(nl80211_iftype(iface));
+#endif  // ENABLE_REVEN_WIFI_FIXUP
     }
   }
 }
@@ -159,10 +161,12 @@ void WiFiPhy::ParseConcurrency(const Nl80211Message& nl80211_message) {
     concurrency_combs_.insert(comb);
   }
 
+#if defined(ENABLE_REVEN_WIFI_FIXUP)
   // Add the default concurrency combindation for each supported interface type.
   for (auto& iface : supported_ifaces_) {
     AddDefaultCombinationForType(iface);
   }
+#endif  // ENABLE_REVEN_WIFI_FIXUP
 }
 
 void WiFiPhy::PhyDumpComplete() {
@@ -508,6 +512,7 @@ std::set<int> WiFiPhy::GetActiveFrequencies() const {
   return freqs;
 }
 
+#if defined(ENABLE_REVEN_WIFI_FIXUP)
 void WiFiPhy::AddDefaultCombinationForType(nl80211_iftype iftype) {
   for (auto& comb : concurrency_combs_) {
     if (comb.limits.size() != 1 || comb.max_num != 1 ||
@@ -529,6 +534,7 @@ void WiFiPhy::AddDefaultCombinationForType(nl80211_iftype iftype) {
   };
   concurrency_combs_.insert(comb);
 }
+#endif  // ENABLE_REVEN_WIFI_FIXUP
 
 // Operators to facilitate interface combination logging.
 std::ostream& operator<<(std::ostream& out, const nl80211_iftype& it) {

@@ -204,6 +204,7 @@ _IUSE = [
     "qualcomm_camx",
     "qrtr",
     "reven_oobe_config",
+    "reven_wifi_fixup",
     "secagentd_min_core_btf",
     "selinux",
     "slow_mount",
