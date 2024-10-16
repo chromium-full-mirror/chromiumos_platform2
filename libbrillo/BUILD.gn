@@ -40,6 +40,7 @@ config("target_defaults") {
     "USE_DBUS=${use.dbus}",
     "USE_RTTI_FOR_TYPE_TAGS",
   ]
+  ldflags = [ "-Wl,-z,defs" ]
 }
 
 config("libbrillo_configs") {
@@ -117,6 +118,7 @@ libbrillo_sublibs = [
     deps = [ ":libbrillo-core" ]
     sources = [ "brillo/blkdev_utils/loop_device.cc" ]
     if (use.device_mapper) {
+      libs = [ "lvm2cmd" ]
       pkg_deps = [ "libdevmapper" ]
       sources += [
         "brillo/blkdev_utils/device_mapper.cc",

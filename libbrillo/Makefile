@@ -43,14 +43,14 @@ LIBBRILLO_LDFLAGS:=["-Wl,-O2","-Wl,--as-needed","-Wl,-Bdynamic", \
   "-L$(STAGING_DIR_ROOT)/usr/lib"]
 
 USE_FLAGS:={arm=$(ARM_ARCH) abi_x86_64=$(X86_ARCH) amd64=$(X86_ARCH) \
-  fuzzer=false cros_host=true test=false dbus=true device_mapper=true \
+  fuzzer=false cros_host=false test=false dbus=true device_mapper=false \
   udev=false profiling=false tcmalloc=false}
 
 GN_ARGS:=platform_subdir="libbrillo" OS="linux" \
 	 platform2_root="$(BUILD_DIR)" \
 	 libdir="$(STAGING_DIR_ROOT)/usr/lib" \
 	 libbase_ver="860220" \
-	 sysroot="$(STAGING_DIR)" \
+	 sysroot="$(STAGING_DIR_ROOT)" \
          build_root="$(PKG_BUILD_DIR)/"\
 	 pkg_config="$(STAGING_DIR_HOST)/bin/pkg-config" \
 	 cc="$(TARGET_CC)" ar="$(TARGET_AR)" cxx="$(TARGET_CXX)" \
