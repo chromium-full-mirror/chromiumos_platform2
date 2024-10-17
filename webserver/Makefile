@@ -6,6 +6,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=webserver
 PKG_RELEASE:=1
+PKG_BUILD_DEPENDS:=chromeos-dbus-bindings
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -14,7 +15,7 @@ define Package/webserver
   SECTION:=gwifi
   CATEGORY:=Nest WiFi Mesh Solutions
   SUBMENU:=Libs
-  DEPENDS:=+libchrome +libbrillo +libmicrohttpd +libopenssl +chromeos-dbus-bindings
+  DEPENDS:=+libchrome +libbrillo +libmicrohttpd +libopenssl
 endef
 
 define Package/$(PKG_NAME)/description
