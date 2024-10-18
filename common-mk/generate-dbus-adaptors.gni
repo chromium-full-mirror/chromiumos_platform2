@@ -22,7 +22,7 @@ template("generate_dbus_adaptors") {
     outputs = [ "${h_dir}/{{source_name_part}}.h" ]
     bin_path = ""
     if (target_os == "prplos") {
-      bin_path = "${sysroot}/../hostpkg/bin/"
+      bin_path = "${sysroot}/../../hostpkg/bin/"
     }
     args = [
       "${bin_path}generate-chromeos-dbus-bindings",

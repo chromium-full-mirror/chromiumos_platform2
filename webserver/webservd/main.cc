@@ -19,7 +19,12 @@
 
 #include "webservd/config.h"
 #include "webservd/log_manager.h"
+#if defined(GWIFI_PRPLOS)
+#include "webservd/dummy_firewall.h"
+using FirewallImpl = webservd::DummyFirewall;
+#else
 #include "webservd/permission_broker_firewall.h"
+#endif
 #include "webservd/server.h"
 #include "webservd/utils.h"
 
@@ -45,7 +50,11 @@ class Daemon final : public brillo::DBusServiceDaemon {
     webservd::LogManager::Init(base::FilePath{config_.log_directory});
     server_.reset(new webservd::Server{
         object_manager_.get(), config_,
+#if defined(GWIFI_PRPLOS)
+        std::make_unique<webservd::DummyFirewall>()});
+#else
         std::make_unique<webservd::PermissionBrokerFirewall>()});
+#endif
     server_->RegisterAsync(
         sequencer->GetHandler("Server.RegisterAsync() failed.", true));
   }

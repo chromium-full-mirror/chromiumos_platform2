@@ -35,7 +35,7 @@ template("generate_dbus_proxies") {
     outputs = []
     bin_path = ""
     if (target_os == "prplos") {
-      bin_path = "${sysroot}/../hostpkg/bin/"
+      bin_path = "${sysroot}/../../hostpkg/bin/"
     }
     args = [ "${bin_path}generate-chromeos-dbus-bindings" ] +
            rebase_path(sources, root_build_dir) +

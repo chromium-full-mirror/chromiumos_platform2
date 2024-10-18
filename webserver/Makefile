@@ -15,7 +15,7 @@ define Package/webserver
   SECTION:=gwifi
   CATEGORY:=Nest WiFi Mesh Solutions
   SUBMENU:=Libs
-  DEPENDS:=+libchrome +libbrillo +libmicrohttpd +libopenssl
+  DEPENDS:=+libchrome +libbrillo +libmicrohttpd +libopenssl +minijail
 endef
 
 define Package/$(PKG_NAME)/description
@@ -31,7 +31,8 @@ else
 endif
 
 WEBSERVER_CFLAGS:=["-O2", "-pipe", "-std=gnu11", "-I$(TOOLCHAIN_DIR)/include"]
-WEBSERVER_CPPFLAGS:=["-DUSE_RTTI_FOR_TYPE_TAGS"]
+WEBSERVER_CPPFLAGS:=["-D_LARGEFILE_SOURCE","-D_LARGEFILE64_SOURCE","-DNDEBUG", \
+  "-DUSE_RTTI_FOR_TYPE_TAGS"]
 WEBSERVER_CXXFLAGS:=["-Os","-pipe","-Wunused-function","-Wno-error", \
   "-std=c++17","-fno-exceptions","-fno-unwind-tables", \
   "-fno-asynchronous-unwind-tables","-Wno-implicit-fallthrough", \
@@ -39,11 +40,12 @@ WEBSERVER_CXXFLAGS:=["-Os","-pipe","-Wunused-function","-Wno-error", \
 WEBSERVER_LDFLAGS:=["-Wl,-O2","-Wl,--as-needed","-Wl,-Bdynamic", \
   "-L$(STAGING_DIR_ROOT)/usr/lib"]
 
-USE_FLAGS:={arm=$(ARM_ARCH) abi_x86_64=$(X86_ARCH) amd64=$(X86_ARCH) test=false cros_host=true profiling=false tcmalloc=false}
+USE_FLAGS:={arm=$(ARM_ARCH) abi_x86_64=$(X86_ARCH) amd64=$(X86_ARCH) \
+  test=false cros_host=false profiling=false tcmalloc=false}
 
 GN_ARGS:=platform_subdir="webserver" target_os="prplos" OS="linux" \
 	 platform2_root="$(BUILD_DIR)" \
-	 sysroot="$(STAGING_DIR)" build_root="$(PKG_BUILD_DIR)/" \
+	 sysroot="$(STAGING_DIR_ROOT)" build_root="$(PKG_BUILD_DIR)/" \
 	 pkg_config="$(STAGING_DIR_HOST)/bin/pkg-config" \
 	 cc="$(TARGET_CC)" ar="$(TARGET_AR)" \
 	 cxx="$(TARGET_CXX)" \
@@ -72,7 +74,7 @@ endef
 
 define Build/Compile
 	cd $(PKG_BUILD_DIR) && $(STAGING_DIR_HOST)/bin/ninja \
-	  -C $(PKG_BUILD_DIR)/out/Default webserver:libwebserv
+	  -C $(PKG_BUILD_DIR)/out/Default webserver:all
 endef
 
 define Build/InstallDev
@@ -88,9 +90,11 @@ endef
 
 define Package/$(PKG_NAME)/install
 	$(INSTALL_DIR) $(1)/usr/lib
+	$(INSTALL_DIR) $(1)/usr/sbin
 	$(INSTALL_DIR) $(1)/etc/dbus-1/system.d
 	$(CP) $(PKG_BUILD_DIR)/out/Default/lib/libwebserv.so $(1)/usr/lib
 	$(CP) $(PKG_BUILD_DIR)/webservd/etc/dbus-1/org.chromium.WebServer.conf $(1)/etc/dbus-1/system.d
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/out/Default/webservd $(1)/usr/sbin
 endef
 
 $(eval $(call BuildPackage,$(PKG_NAME)))

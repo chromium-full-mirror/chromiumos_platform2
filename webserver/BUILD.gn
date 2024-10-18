@@ -31,10 +31,17 @@ if (target_os != "prplos") {
   default_pkg_deps += [ "libpermission_broker-client" ]
 }
 
-pkg_config("target_defaults") {
+pkg_config("target_defaults_pkg_deps") {
   include_dirs = [ "." ]
 
   pkg_deps = default_pkg_deps
+}
+
+config("target_defaults") {
+  configs = [ ":target_defaults_pkg_deps" ]
+  if (target_os == "prplos") {
+    defines = [ "GWIFI_PRPLOS" ]
+  }
 }
 
 generate_dbus_adaptors("generate_webservd_adaptors") {
@@ -122,13 +129,17 @@ static_library("webservd_common") {
     "webservd/error_codes.cc",
     "webservd/fake_encryptor.cc",
     "webservd/log_manager.cc",
-    "webservd/permission_broker_firewall.cc",
     "webservd/protocol_handler.cc",
     "webservd/request.cc",
     "webservd/server.cc",
     "webservd/temp_file_manager.cc",
     "webservd/utils.cc",
   ]
+  if (target_os == "prplos") {
+    sources += [ "webservd/dummy_firewall.cc" ]
+  } else {
+    sources += [ "webservd/permission_broker_firewall.cc" ]
+  }
   configs += [ ":target_defaults" ]
   all_dependent_configs = [ ":webservd_common_config" ]
   deps = [
