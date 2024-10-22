@@ -102,6 +102,7 @@ using AvlAllowedProbeFunctions = ProbeFunctions<AtaStorageFunction,
 
 using SsfcAllowedProbeFunctions = ProbeFunctions<ApI2cFunction,
                                                  EcI2cFunction,
+                                                 EdidFunction,
                                                  InputDeviceFunction,
                                                  MipiCameraFunction,
                                                  TcpcFunction>;
