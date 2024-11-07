@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <fstream>
+
 #include <base/check.h>
 #include <base/files/file.h>
 #include <base/files/file_path.h>
@@ -20,6 +22,43 @@ constexpr const char kPmcCorePath[] = "/sys/kernel/debug/pmc_core";
 
 }  // namespace
 
+bool is_sighting_alert(void) {
+  base::FilePath pmc_core_file_path(kPmcCorePath);
+  base::FilePath substate_sts_path;
+
+  // (b/271527450): Intel sighting alert 772439
+  substate_sts_path = pmc_core_file_path.Append("substate_status_registers");
+  if (base::PathExists(substate_sts_path)) {
+    std::ifstream file(substate_sts_path.value());
+    std::string_view lpm_sts_0;
+    std::string line;
+
+    /*********************************************************************
+     * Search 'PMC0:LPM_STATUS_0' and get the register value for checking.
+     * EX: "PMC0:LPM_STATUS_0:   0xf57c0074", check 0xf57c0074
+     *********************************************************************
+     */
+    while (std::getline(file, line)) {
+      if (line.find("PMC0:LPM_STATUS_0") == std::string::npos) {
+        continue;
+      }
+
+      size_t pos = line.find("0x");
+      if (pos != std::string::npos) {
+        lpm_sts_0 = line.substr(pos);
+      }
+      break;
+    }
+
+    if (lpm_sts_0 == "0xf57c0074" || lpm_sts_0 == "0xf57c00f4") {
+      printf("CNVi Sighting Alert 772439!\n");
+      return true;
+    }
+  }
+
+  return false;
+}
+
 void SetLtrIgnore(const std::string& ip_index) {
   base::FilePath pmc_core_file_path(kPmcCorePath);
   base::FilePath ltr_ignore_file_path = pmc_core_file_path.Append("ltr_ignore");
@@ -35,6 +74,7 @@ void SetLtrIgnore(const std::string& ip_index) {
 
 int main(int argc, char** argv) {
   DEFINE_string(ltr_ignore, "", "The ip ltr would be ignored.");
+  DEFINE_bool(sighting_check, false, "Check if it is any known sighting case");
   brillo::FlagHelper::Init(
       argc, argv, "Execute command before/after suspend for Intel SoCs");
 
@@ -42,6 +82,10 @@ int main(int argc, char** argv) {
 
   if (!FLAGS_ltr_ignore.empty()) {
     SetLtrIgnore(FLAGS_ltr_ignore);
+  }
+
+  if (FLAGS_sighting_check) {
+    return !is_sighting_alert();
   }
 
   return 0;
