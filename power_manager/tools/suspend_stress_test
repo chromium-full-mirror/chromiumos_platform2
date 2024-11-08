@@ -42,6 +42,8 @@ DEFINE_string  pre_suspend_command "" "Command to run before each suspend"
 DEFINE_string  post_resume_command "" "Command to run after each resume"
 DEFINE_boolean ignore_s0ix_substates "${FLAGS_FALSE}" \
                "Ignore Intel s0ix substates and only check generic s0ix counter"
+DEFINE_integer waived_premature_wake_failure_limit 1 \
+               "Max number of this kinds of waived fatal errors to ignore"
 
 dmesg_last_cycle() {
   lines=0
@@ -228,6 +230,15 @@ EOF
   return 1
 }
 
+is_waived_premature_wake_failure() {
+  # Intel waived sighting case
+  if [ -e /sys/kernel/debug/pmc_core/substate_status_registers ] && \
+     intel_prepost_suspend --sighting_check; then
+    return 0
+  else
+    return 1
+  fi
+}
 
 FLAGS "$@" || exit 1
 
@@ -332,6 +343,7 @@ premature_wake_count=0
 late_wake_count=0
 last_firmware_errors=$(get_firmware_error_counts)
 s0ix_counter_support=$(has_ectool_s0ix_counter)
+waived_premature_wake_failure_count=0
 
 while true; do
   : $(( cur += 1 ))
@@ -384,6 +396,8 @@ while true; do
   last_wakeup_irq_name="$(get_last_wakeup_irq_name)"
   sus_time_str="slept for ${actual_sus_time}s, expected ${sus_time}s"
   ignore_failure=0
+  ignore_premature_wake_failure="${FLAGS_FALSE}"
+
   if [ "${cur_ignore_count}" -ne "${last_ignore_count}" ]; then
     echo "Ignore wakeup from source ${FLAGS_ignore_wakeup_source}"
     ignore_failure=1
@@ -396,7 +410,14 @@ while true; do
   if [ "${ignore_failure}" -eq 0 ]; then
     if [ "${diff_sus_time}" -lt "${FLAGS_suspend_time_margin_min}" ]; then
       : $(( premature_wake_count += 1 ))
-      if [ "${FLAGS_premature_wake_fatal}" -eq "${FLAGS_TRUE}" ]; then
+      # If we haven't exceeded the premature wake waived failure limit, we can
+      # waive this suspend failure.
+      if is_waived_premature_wake_failure && \
+         [ "${waived_premature_wake_failure_count}" -lt \
+           "${FLAGS_waived_premature_wake_failure_limit}" ]; then
+        : $(( waived_premature_wake_failure_count += 1 ))
+        ignore_premature_wake_failure="${FLAGS_TRUE}"
+      elif [ "${FLAGS_premature_wake_fatal}" -eq "${FLAGS_TRUE}" ]; then
         echo "Premature wake detected: ${sus_time_str}, test failed."
         exit_loop=1
       else
@@ -451,7 +472,9 @@ while true; do
   cur_successes=$(get_success_count)
   cur_s0ix_count=$(get_s0ix_count)
   cur_s2idle_count=$(get_s2idle_count)
-  if [ "${cur_successes}" -eq "${last_successes}" ] && \
+  if [ "${ignore_premature_wake_failure}" -eq "${FLAGS_TRUE}" ]; then
+    echo "Ignore this failure."
+  elif [ "${cur_successes}" -eq "${last_successes}" ] && \
      [ "${ignore_failure}" -eq "0" ]; then
     if [ "${FLAGS_errors_fatal}" -eq "${FLAGS_TRUE}" ]; then
       echo "Suspend failed."
