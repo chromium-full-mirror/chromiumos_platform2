@@ -35,7 +35,7 @@ LIBBRILLO_CPPFLAGS:=["-D_LARGEFILE_SOURCE","-D_LARGEFILE64_SOURCE","-DNDEBUG", \
 LIBBRILLO_CXXFLAGS:=["-Os","-pipe","-Wunused-function","-Wno-error", \
   "-std=c++17","-fno-exceptions","-fno-unwind-tables", \
   "-fno-asynchronous-unwind-tables","-Wno-implicit-fallthrough", \
-  "-fpermissive","-fPIC","-DOS_CHROMEOS=1",\
+  "-fpermissive","-fPIC","-DOS_CHROMEOS=1","-DUSE_HTTP1_1=1", \
   "-I$(BUILD_DIR)/lvm2-normal/LVM2.2.03.16/tools/", \
   "-I$(STAGING_DIR)/usr/include","-D_FILE_OFFSET_BITS=64",\
   "-D_LARGEFILE_SOURCE","-D_LARGEFILE64_SOURCE","-DNDEBUG"]

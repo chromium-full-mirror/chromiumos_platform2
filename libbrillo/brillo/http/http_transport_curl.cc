@@ -155,6 +155,16 @@ std::shared_ptr<http::Connection> Transport::CreateConnection(
     code =
         curl_interface_->EasySetOptInt(curl_handle, CURLOPT_SSL_VERIFYHOST, 2);
   }
+#ifdef USE_HTTP1_1
+  // On CrOS, libcurl uses HTTP1.1, while eureka libcurl has HTTP2 enabled.
+  // To align the behavior on two gwifi platforms, we need this local change
+  // in eureka libbrillo-cros. See b/193385482 for more info.
+  if (code == CURLE_OK) {
+    code =
+        curl_interface_->EasySetOptInt(curl_handle, CURLOPT_HTTP_VERSION,
+                                       CURL_HTTP_VERSION_1_1);
+  }
+#endif
   if (code == CURLE_OK && !user_agent.empty()) {
     code = curl_interface_->EasySetOptStr(curl_handle, CURLOPT_USERAGENT,
                                           user_agent);
