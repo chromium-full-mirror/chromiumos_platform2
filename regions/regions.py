@@ -816,6 +816,14 @@ REGIONS_LIST = [
         KML.ANSI,
         "Romania with US International keyboard layout",
     ),
+    Region(
+        "lv",
+        "xkb:us:intl:eng",
+        "Europe/Riga",
+        "en-US",
+        KML.ANSI,
+        "Latvia with US International keyboard layout",
+    ),
 ]
 
 """A list of :py:class:`regions.Region` objects for
@@ -1941,14 +1949,6 @@ UNCONFIRMED_REGIONS_LIST = [
         ["de", "en-GB"],
         KML.ISO,
         "Liechtenstein",
-    ),
-    Region(
-        "lv",
-        "xkb:lv:apostrophe:lav",
-        "Europe/Riga",
-        ["lv", "lt", "ru", "en-GB"],
-        KML.ISO,
-        "Latvia",
     ),
     Region(
         "to",
