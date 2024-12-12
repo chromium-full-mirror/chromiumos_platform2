@@ -14,6 +14,8 @@
 
 #include <base/functional/bind.h>
 #include <base/functional/callback_helpers.h>
+#include <base/strings/stringprintf.h>
+#include <base/test/scoped_chromeos_version_info.h>
 #include <base/time/time.h>
 #include <brillo/http/http_request.h>
 #include <brillo/http/mock_connection.h>
@@ -49,6 +51,11 @@ const std::vector<net_base::HttpUrl> kFallbackHttpsUrls{
     *net_base::HttpUrl::CreateFromString("http://url1.com/gen204"),
     *net_base::HttpUrl::CreateFromString("http://url2.com/gen204"),
 };
+const brillo::http::HeaderList kHeaders = {
+    {"User-Agent",
+     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) "
+     "Chrome/132.0.0.0 Safari/537.36"}};
+constexpr char kChromeMilestone[] = "132";
 constexpr net_base::IPAddress kDNSServer0(net_base::IPv4Address(8, 8, 8, 8));
 constexpr net_base::IPAddress kDNSServer1(net_base::IPv4Address(8, 8, 4, 4));
 constexpr std::string_view kPortalSignInURL = "https://portal.com/login";
@@ -73,9 +80,11 @@ class MockHttpRequest : public HttpRequest {
              base::OnceCallback<void(Result result)> callback) override {
     // We only verify the URL in the test.
     StartWithUrl(url);
+    StartWithHeaders(headers);
   }
 
   MOCK_METHOD(void, StartWithUrl, (const net_base::HttpUrl&), ());
+  MOCK_METHOD(void, StartWithHeaders, (const brillo::http::HeaderList&), ());
 };
 
 }  // namespace
@@ -153,11 +162,13 @@ class PortalDetectorTest : public Test {
         .WillOnce([]() {
           auto http_request = std::make_unique<MockHttpRequest>();
           EXPECT_CALL(*http_request, StartWithUrl);
+          EXPECT_CALL(*http_request, StartWithHeaders(kHeaders));
           return http_request;
         })
         .WillOnce([]() {
           auto https_request = std::make_unique<MockHttpRequest>();
           EXPECT_CALL(*https_request, StartWithUrl);
+          EXPECT_CALL(*https_request, StartWithHeaders(kHeaders));
           return https_request;
         });
     EXPECT_CALL(callback_target_, ResultCallback).Times(0);
@@ -176,6 +187,7 @@ class PortalDetectorTest : public Test {
     EXPECT_CALL(*portal_detector_, CreateHTTPRequest).WillOnce([]() {
       auto http_request = std::make_unique<MockHttpRequest>();
       EXPECT_CALL(*http_request, StartWithUrl);
+      EXPECT_CALL(*http_request, StartWithHeaders(kHeaders));
       return http_request;
     });
     EXPECT_CALL(callback_target_, ResultCallback).Times(0);
@@ -229,6 +241,10 @@ class PortalDetectorTest : public Test {
   const std::string interface_name_;
   std::vector<net_base::IPAddress> dns_servers_;
   std::unique_ptr<TestablePortalDetector> portal_detector_;
+  base::test::ScopedChromeOSVersionInfo version_info_{
+      base::StringPrintf("CHROMEOS_RELEASE_CHROME_MILESTONE=%s",
+                         kChromeMilestone),
+      base::Time()};
 };
 
 TEST_F(PortalDetectorTest, NoCustomCertificates) {
@@ -317,11 +333,13 @@ TEST_F(PortalDetectorTest, RestartAfterRedirect) {
       .WillOnce([]() {
         auto http_request = std::make_unique<MockHttpRequest>();
         EXPECT_CALL(*http_request, StartWithUrl(kHttpUrl));
+        EXPECT_CALL(*http_request, StartWithHeaders(kHeaders));
         return http_request;
       })
       .WillOnce([]() {
         auto https_request = std::make_unique<MockHttpRequest>();
         EXPECT_CALL(*https_request, StartWithUrl(kHttpsUrl));
+        EXPECT_CALL(*https_request, StartWithHeaders(kHeaders));
         return https_request;
       });
   portal_detector_->Start(/*http_only=*/false, net_base::IPFamily::kIPv4,
@@ -338,11 +356,13 @@ TEST_F(PortalDetectorTest, RestartAfterRedirect) {
       .WillOnce([]() {
         auto http_request = std::make_unique<MockHttpRequest>();
         EXPECT_CALL(*http_request, StartWithUrl(kHttpUrl));
+        EXPECT_CALL(*http_request, StartWithHeaders(kHeaders));
         return http_request;
       })
       .WillOnce([]() {
         auto https_request = std::make_unique<MockHttpRequest>();
         EXPECT_CALL(*https_request, StartWithUrl);
+        EXPECT_CALL(*https_request, StartWithHeaders(kHeaders));
         return https_request;
       });
   portal_detector_->Start(/*http_only=*/false, net_base::IPFamily::kIPv4,
@@ -359,11 +379,13 @@ TEST_F(PortalDetectorTest, RestartAfterSuspectedRedirect) {
       .WillOnce([]() {
         auto http_request = std::make_unique<MockHttpRequest>();
         EXPECT_CALL(*http_request, StartWithUrl(kHttpUrl));
+        EXPECT_CALL(*http_request, StartWithHeaders(kHeaders));
         return http_request;
       })
       .WillOnce([]() {
         auto https_request = std::make_unique<MockHttpRequest>();
         EXPECT_CALL(*https_request, StartWithUrl(kHttpsUrl));
+        EXPECT_CALL(*https_request, StartWithHeaders(kHeaders));
         return https_request;
       });
   portal_detector_->Start(/*http_only=*/false, net_base::IPFamily::kIPv4,
@@ -390,11 +412,13 @@ TEST_F(PortalDetectorTest, RestartAfterSuspectedRedirect) {
       .WillOnce([]() {
         auto http_request = std::make_unique<MockHttpRequest>();
         EXPECT_CALL(*http_request, StartWithUrl(kHttpUrl));
+        EXPECT_CALL(*http_request, StartWithHeaders(kHeaders));
         return http_request;
       })
       .WillOnce([]() {
         auto https_request = std::make_unique<MockHttpRequest>();
         EXPECT_CALL(*https_request, StartWithUrl);
+        EXPECT_CALL(*https_request, StartWithHeaders(kHeaders));
         return https_request;
       });
   portal_detector_->Start(/*http_only=*/false, net_base::IPFamily::kIPv4,
@@ -436,11 +460,13 @@ TEST_F(PortalDetectorTest, AttemptCount) {
       .WillOnce([]() {
         auto http_request = std::make_unique<MockHttpRequest>();
         EXPECT_CALL(*http_request, StartWithUrl(kHttpUrl));
+        EXPECT_CALL(*http_request, StartWithHeaders(kHeaders));
         return http_request;
       })
       .WillOnce([]() {
         auto https_request = std::make_unique<MockHttpRequest>();
         EXPECT_CALL(*https_request, StartWithUrl(kHttpsUrl));
+        EXPECT_CALL(*https_request, StartWithHeaders(kHeaders));
         return https_request;
       });
   portal_detector_->Start(/*http_only=*/false, net_base::IPFamily::kIPv4,
@@ -468,6 +494,7 @@ TEST_F(PortalDetectorTest, AttemptCount) {
           EXPECT_CALL(*http_request,
                       StartWithUrl(AnyOfArray(expected_retry_http_urls)))
               .Times(1);
+          EXPECT_CALL(*http_request, StartWithHeaders(kHeaders)).Times(1);
           return http_request;
         })
         .WillOnce([&expected_retry_https_urls]() {
@@ -475,6 +502,7 @@ TEST_F(PortalDetectorTest, AttemptCount) {
           EXPECT_CALL(*https_request,
                       StartWithUrl(AnyOfArray(expected_retry_https_urls)))
               .Times(1);
+          EXPECT_CALL(*https_request, StartWithHeaders(kHeaders)).Times(1);
           return https_request;
         });
 
