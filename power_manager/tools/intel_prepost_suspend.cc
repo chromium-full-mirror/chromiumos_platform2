@@ -19,6 +19,7 @@ namespace {
 // Path to the Intel pmc_core driver sysfs interface, if it doesn't exist,
 // either the kernel is old w/o it, or it is not configured.
 constexpr const char kPmcCorePath[] = "/sys/kernel/debug/pmc_core";
+constexpr const char kDisDccCmd[] = "/usr/local/factory/py/tools/dis_dcc.py";
 
 }  // namespace
 
@@ -74,8 +75,7 @@ void SetLtrIgnore(const std::string_view ip_index) {
 }
 
 void exe_boardwa(const std::string_view brd) {
-  const std::string_view dis_dcc_cmd = "/usr/local/factory/py/tools/dis_dcc.py";
-  base::FilePath dis_dcc_file_path(dis_dcc_cmd);
+  base::FilePath dis_dcc_cmd(kDisDccCmd);
   int ret;
 
   // Ignore CNVi LTR, it's cross-platform case.
@@ -84,10 +84,10 @@ void exe_boardwa(const std::string_view brd) {
   if (brd == "brask") {
     // Ignore LAN
     SetLtrIgnore("1");
-    if (base::PathExists(dis_dcc_file_path)) {
-      ret = ::system(dis_dcc_cmd.data());
+    if (base::PathExists(dis_dcc_cmd)) {
+      ret = ::system(dis_dcc_cmd.value().c_str());
       if (ret) {
-        PLOG(WARNING) << "Failed for calling `" << dis_dcc_cmd << "`";
+        PLOG(WARNING) << "Failed for calling `" << dis_dcc_cmd.value() << "`";
       }
     }
   } else if (brd == "ovis") {
