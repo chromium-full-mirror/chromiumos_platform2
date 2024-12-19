@@ -724,12 +724,12 @@ def _build_touch_file_config(config, project_name):
 def _build_modem(config):
   """Returns the cellular modem configuration, or None if absent."""
   hw_features = config.hw_design_config.hardware_features
-  lte_support = _any_present([hw_features.lte.present])
-  if not lte_support:
+  cellular_support = _any_present([hw_features.cellular.present])
+  if not cellular_support:
     return None
   firmware_variant = config.hw_design.name.lower()
-  if hw_features.lte.model:
-    firmware_variant += '_' + hw_features.lte.model.lower()
+  if hw_features.cellular.model:
+    firmware_variant += '_' + hw_features.cellular.model.lower()
   return {'firmware-variant': firmware_variant}
 
 
