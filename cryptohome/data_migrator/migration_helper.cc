@@ -603,8 +603,6 @@ bool MigrationHelper::MigrateFile(const base::FilePath& child,
       &from_file, from_child,
       base::File::FLAG_OPEN | base::File::FLAG_READ | base::File::FLAG_WRITE);
   if (!from_file.IsValid()) {
-    PLOG(ERROR) << "Failed to open file " << from_child.value();
-
     if (from_file.error_details() == base::File::FILE_ERROR_IO &&
         delegate_->ShouldSkipFileOnIOErrors()) {
       LOG(WARNING) << "Found file that cannot be opened with EIO, skipping "
@@ -614,19 +612,7 @@ bool MigrationHelper::MigrateFile(const base::FilePath& child,
       delegate_->RecordSkippedFile(child);
       return true;
     }
-
-    if (delegate_->ShouldSkipVerityFileOnErrors()) {
-      int flags = 0;
-      if (platform_->GetExtFileAttributes(from_child, &flags) &&
-          (flags & FS_VERITY_FL) == FS_VERITY_FL) {
-        LOG(WARNING) << "Skipping verity-enabled file " << from_child.value();
-        RecordFileError(kMigrationFailedAtOpenSourceFileNonFatal, child,
-                        from_file.error_details(),
-                        FailureLocationType::kSource);
-        return true;
-      }
-    }
-
+    PLOG(ERROR) << "Failed to open file " << from_child.value();
     RecordFileError(kMigrationFailedAtOpenSourceFile, child,
                     from_file.error_details(), FailureLocationType::kSource);
     return false;

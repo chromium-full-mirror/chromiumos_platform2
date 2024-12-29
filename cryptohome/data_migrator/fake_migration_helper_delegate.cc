@@ -54,10 +54,6 @@ bool FakeMigrationHelperDelegate::ShouldCopyQuotaProjectId() {
   return true;
 }
 
-bool FakeMigrationHelperDelegate::ShouldSkipVerityFileOnErrors() {
-  return true;
-}
-
 bool FakeMigrationHelperDelegate::ShouldSkipFileOnIOErrors() {
   return true;
 }

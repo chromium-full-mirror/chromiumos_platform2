@@ -52,7 +52,6 @@ class FakeMigrationHelperDelegate : public MigrationHelperDelegate {
   // MigrationHelperDelegate overrides:
   bool ShouldMigrateFile(const base::FilePath& child) override;
   bool ShouldCopyQuotaProjectId() override;
-  bool ShouldSkipVerityFileOnErrors() override;
   bool ShouldSkipFileOnIOErrors() override;
   std::string GetMtimeXattrName() override;
   std::string GetAtimeXattrName() override;
