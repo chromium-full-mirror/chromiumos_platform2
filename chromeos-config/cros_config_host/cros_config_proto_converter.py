@@ -1651,7 +1651,7 @@ def _generate_arc_media_profiles(hw_features, sw_config):
           }),
   ])
 
-  dtd_path = os.path.dirname(__file__)
+  dtd_path = os.path.join('config', 'payload_utils')
   dtd = etree.DTD(os.path.join(dtd_path, 'media_profiles.dtd'))
   if not dtd.validate(root):
     raise etree.DTDValidateError(
