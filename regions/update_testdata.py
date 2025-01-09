@@ -65,7 +65,8 @@ def UpdateLocales():
     """
     cpp_code = GetChromiumSource("ui/base/l10n/l10n_util.cc")
     match = re.search(
-        r"static[^\n]+kAcceptLanguageList\[\] = \{(.+?)^\}",
+        r"constexpr[^\n]+kAcceptLanguageList = "
+        r"base::MakeFixedFlatSet<std::string_view>\(\{(.+?)^\}\)",
         cpp_code,
         re.DOTALL | re.MULTILINE,
     )
@@ -85,7 +86,7 @@ def UpdateTimeZones():
     Valid time zones are values of the kTimeZones array in timezone_settings.cc
     <http://goo.gl/WSVUeE>.
     """
-    cpp_code = GetChromiumSource("ash/components/settings/timezone_settings.cc")
+    cpp_code = GetChromiumSource("chromeos/ash/components/settings/timezone_settings.cc")
     match = re.search(
         r"static[^\n]+kTimeZones\[\] = \{(.+?)^\}",
         cpp_code,

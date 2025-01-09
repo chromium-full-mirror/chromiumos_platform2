@@ -2,15 +2,19 @@
 # by update_testdata.py. Do not edit manually.
 
 - af
+- ak
 - am
 - an
 - ar
 - ar-XB
 - as
 - ast
+- ay
 - az
 - be
 - bg
+- bho
+- bm
 - bn
 - br
 - bs
@@ -27,12 +31,16 @@
 - de-CH
 - de-DE
 - de-LI
+- doi
+- dv
+- ee
 - el
 - en
 - en-AU
 - en-CA
 - en-GB
 - en-GB-oxendict
+- en-IE
 - en-IN
 - en-NZ
 - en-US
@@ -80,6 +88,7 @@
 - ia
 - id
 - ig
+- ilo
 - is
 - it
 - it-CH
@@ -92,19 +101,24 @@
 - kn
 - ko
 - kok
+- kri
 - ku
 - ky
 - la
 - lb
+- lg
 - ln
 - lo
 - lt
+- lus
 - lv
+- mai
 - mg
 - mi
 - mk
 - ml
 - mn
+- mni-Mtei
 - mo
 - mr
 - ms
@@ -115,6 +129,7 @@
 - nl
 - nn
 - 'no'
+- nso
 - ny
 - oc
 - om
@@ -130,6 +145,7 @@
 - ro
 - ru
 - rw
+- sa
 - sd
 - sh
 - si
@@ -153,6 +169,7 @@
 - tn
 - to
 - tr
+- ts
 - tt
 - tw
 - ug
