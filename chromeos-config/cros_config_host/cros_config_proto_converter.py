@@ -1962,6 +1962,27 @@ def _build_dgpu(hw_features):
     return result
 
 
+def _build_dsp(hw_features):
+    if not hw_features.HasField("dsp_core"):
+        return None
+
+    dsp_core = hw_features.dsp_core
+    result = {}
+    if dsp_core.present != topology_pb2.HardwareFeatures.PRESENT:
+        return None
+    else:
+        result["has-dsp"] = True
+        if (
+            dsp_core.vendor
+            == topology_pb2.HardwareFeatures.DspCore.VENDOR_INTEL
+        ):
+            result["dsp-vendor"] = "intel"
+        else:
+            result["dsp-vendor"] = "unknown"
+
+    return result
+
+
 def _build_uwb(hw_features):
     if not hw_features.HasField("uwb_config"):
         return None
@@ -2141,16 +2162,15 @@ def _build_hardware_properties(hw_features):
 
     if hw_features.HasField("embedded_controller"):
         if hw_features.embedded_controller.HasField("max_sensor_odr_mhz"):
-            result[
-                "ec-max-sensor-odr"
-            ] = hw_features.embedded_controller.max_sensor_odr_mhz.value
+            result["ec-max-sensor-odr"] = (
+                hw_features.embedded_controller.max_sensor_odr_mhz.value
+            )
         if hw_features.embedded_controller.HasField(
             "max_accelerometer_calibration"
         ):
-            result[
-                "ec-max-calibration_accel"
-            ] = (
-                hw_features.embedded_controller.max_accelerometer_calibration.value
+            controller = hw_features.embedded_controller
+            result["ec-max-calibration-accel"] = (
+                controller.max_accelerometer_calibration.value
             )
 
     return result
@@ -3242,6 +3262,7 @@ def _transform_build_config(config, config_files, custom_label):
     _upsert(_build_storage(hw_features), result, "hardware-properties")
     _upsert(_build_stylus(hw_features), result, "hardware-properties")
     _upsert(_build_dgpu(hw_features), result, "dgpu")
+    _upsert(_build_dsp(hw_features), result, "dsp")
     _upsert(_build_uwb(hw_features), result, "uwb")
     _upsert(
         _build_detachable_base(
