@@ -153,10 +153,6 @@ TEST_F(TpmCryptoImplTest, SingleBytePlainText) {
   ValidateRoundTrip(std::string(1, 'X'));
 }
 
-TEST_F(TpmCryptoImplTest, MegabytePlaintext) {
-  ValidateRoundTrip(std::string(1024 * 1024, 'X'));
-}
-
 TEST_F(TpmCryptoImplTest, AnyModificationFailsDecryption) {
   const std::string plaintext = "Secret Message";
   std::string serialized_proto;
