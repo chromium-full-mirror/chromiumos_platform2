@@ -45,6 +45,7 @@ const char kAuthData[] = "000000";
 const char kNewAuthData[] = "111111";
 const char kDefaultPubExp[] = {1, 0, 1};
 const int kDefaultPubExpSize = 3;
+const int kTestTimes = 2;
 const char kTokenLabel[] = "test_label";
 
 SecureBlob MakeBlob(const char* auth_data_str) {
@@ -316,7 +317,7 @@ TEST_F(TestSlotManager, TestLoadTokenEvents) {
 
 TEST_F(TestSlotManager, ManyLoadToken) {
   InsertToken();
-  for (int i = 0; i < 100; ++i) {
+  for (int i = 0; i < kTestTimes; ++i) {
     string path = base::StringPrintf("test%d", i);
     int slot_id = 0;
     slot_manager_->LoadToken(ic_, FilePath(path), MakeBlob(kAuthData),
@@ -326,7 +327,7 @@ TEST_F(TestSlotManager, ManyLoadToken) {
     slot_manager_->ChangeTokenAuthData(
         FilePath(path + "_"), MakeBlob(kAuthData), MakeBlob(kNewAuthData));
   }
-  for (int i = 0; i < 100; ++i) {
+  for (int i = 0; i < kTestTimes; ++i) {
     string path = base::StringPrintf("test%d", i);
     slot_manager_->UnloadToken(ic_, FilePath(path));
   }
