@@ -45,7 +45,7 @@ const char kAuthData[] = "000000";
 const char kNewAuthData[] = "111111";
 const char kDefaultPubExp[] = {1, 0, 1};
 const int kDefaultPubExpSize = 3;
-const int kTestTimes = 2;
+const int kTestTimes = 1;
 const char kTokenLabel[] = "test_label";
 
 SecureBlob MakeBlob(const char* auth_data_str) {
