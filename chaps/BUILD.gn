@@ -14,7 +14,7 @@ group("all") {
     ":libchaps_static",
     ":p11_replay",
   ]
-  if (false) {
+  if (use.test) {
     deps += [
       ":chaps_service_test",
       ":chaps_test",
@@ -211,7 +211,7 @@ executable("p11_replay") {
   deps = [ ":libchaps" ]
 }
 
-if (false) {
+if (use.test) {
   pkg_config("libchaps_test_dependent_config") {
     pkg_deps = [ "libchrome-test" ]
   }
