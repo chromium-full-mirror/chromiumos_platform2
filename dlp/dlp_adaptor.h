@@ -294,6 +294,9 @@ class DlpAdaptor : public org::chromium::DlpAdaptor,
   // added once it's ready.
   std::vector<FileEntry> pending_files_to_add_;
 
+  // For metrics reporting.
+  base::Thread metrics_thread_;
+
   // For long-running file enumeration tasks.
   base::Thread file_enumeration_thread_;
   scoped_refptr<base::SingleThreadTaskRunner> file_enumeration_task_runner_;
