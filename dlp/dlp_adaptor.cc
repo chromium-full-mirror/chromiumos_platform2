@@ -137,10 +137,15 @@ DlpAdaptor::DlpAdaptor(
       dbus_object_(std::move(dbus_object)),
       feature_lib_(feature_lib),
       home_path_(home_path),
+      metrics_thread_("metrics_thread"),
       file_enumeration_thread_("file_enumeration_thread") {
-  dlp_metrics_ = std::make_unique<DlpMetrics>();
+  // Starting watcher first, before the threads, so that it can respond.
   fanotify_watcher_ = std::make_unique<FanotifyWatcher>(this, fanotify_perm_fd,
                                                         fanotify_notif_fd);
+
+  CHECK(metrics_thread_.Start()) << "Failed to start metrics thread.";
+  dlp_metrics_ = std::make_unique<DlpMetrics>(metrics_thread_.task_runner());
+
   dlp_files_policy_service_ =
       std::make_unique<org::chromium::DlpFilesPolicyServiceProxy>(
           dbus_object_->GetBus().get(), kDlpFilesPolicyServiceName);
@@ -159,6 +164,7 @@ DlpAdaptor::~DlpAdaptor() {
         AdaptorError::kAddFileNotCompleteBeforeDestruction);
   }
   file_enumeration_thread_.Stop();
+  metrics_thread_.Stop();
 }
 
 void DlpAdaptor::RegisterAsync(
