@@ -6,12 +6,16 @@
 
 #include <fcntl.h>
 
+#include <cstdint>
 #include <memory>
+#include <optional>
+#include <sstream>
 #include <string>
 #include <vector>
 
 #include <base/files/file_path.h>
 #include <base/files/scoped_file.h>
+#include <base/strings/string_number_conversions.h>
 #include <base/values.h>
 #include <libec/get_version_command.h>
 #include <libec/i2c_read_command.h>
@@ -23,6 +27,53 @@ namespace runtime_probe {
 
 namespace {
 constexpr int kEcCmdNumAttempts = 10;
+constexpr char kCrosEcPath[] = "dev/cros_ec";
+constexpr char kCrosIshPath[] = "dev/cros_ish";
+
+bool IsMatchExpect(EcComponentManifest::Component::I2c::Expect expect,
+                   base::span<const uint8_t> resp_data) {
+  if (expect.value->size() != resp_data.size()) {
+    LOG(WARNING) << "The response data length is different from the expect "
+                    "value length.";
+    return false;
+  }
+  if (!expect.mask.has_value()) {
+    return expect.value == resp_data;
+  }
+
+  for (int i = 0; i < resp_data.size(); i++) {
+    if ((resp_data[i] & (*expect.mask)[i]) != (*expect.value)[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool RunI2cCommandAndCheckSuccess(const base::ScopedFD& ec_dev_fd,
+                                  ec::I2cPassthruCommand* cmd) {
+  return cmd != nullptr &&
+         cmd->RunWithMultipleAttempts(ec_dev_fd.get(), kEcCmdNumAttempts) &&
+         !cmd->I2cStatus();
+}
+
+std::string GenerateComponentLogLabel(
+    const EcComponentManifest::Component& comp) {
+  std::stringstream string_builder;
+  string_builder << "EC component " << comp.component_type << ":"
+                 << comp.component_name << " on i2c port "
+                 << static_cast<int>(comp.i2c.port) << " addr 0x"
+                 << base::HexEncode({comp.i2c.addr});
+  return string_builder.str();
+}
+
+std::string GenerateExpectI2cCommandLogLabel(
+    const EcComponentManifest::Component::I2c::Expect& expect) {
+  std::stringstream string_builder;
+  string_builder << "i2cxfer command reg=0x" << base::HexEncode({expect.reg})
+                 << " write_data=0x" << base::HexEncode(expect.write_data);
+  return string_builder.str();
+}
+
 }  // namespace
 
 base::ScopedFD EcComponentFunction::GetEcDevice() const {
@@ -63,37 +114,42 @@ std::optional<std::string> EcComponentFunction::GetCurrentECVersion(
 bool EcComponentFunction::IsValidComponent(
     const EcComponentManifest::Component& comp,
     const base::ScopedFD& ec_dev_fd) const {
-  // |addr| in component manifest is a 7-bit address, where
-  // ec::I2cReadCommand::Create() takes 8-bit address, so we convert addresses
-  // accordingly.
-  const int addr8 = comp.i2c.addr << 1;
+  auto comp_label = GenerateComponentLogLabel(comp);
+  VLOG(1) << "Probing " << comp_label;
+
   if (comp.i2c.expect.size() == 0) {
     // No expect value. Just verify the accessibility of the component.
-    auto cmd = GetI2cReadCommand(comp.i2c.port, addr8, 0u, 1u);
-    if (cmd &&
-        cmd->RunWithMultipleAttempts(ec_dev_fd.get(), kEcCmdNumAttempts) &&
-        !cmd->I2cStatus()) {
-      return true;
-    }
+    auto cmd = GetI2cReadCommand(comp.i2c.port, comp.i2c.addr, 0u, {}, 1u);
+    bool success = RunI2cCommandAndCheckSuccess(ec_dev_fd, cmd.get());
+    VLOG(1) << comp_label << (success ? " probed" : " not probed")
+            << " per the accessibility of that address";
+    return success;
   }
-  for (const auto& expect : comp.i2c.expect) {
-    auto cmd = GetI2cReadCommand(comp.i2c.port, addr8, expect.reg, 1u);
-    if (cmd &&
-        cmd->RunWithMultipleAttempts(ec_dev_fd.get(), kEcCmdNumAttempts) &&
-        !cmd->I2cStatus()) {
-      if (!expect.value || expect.value == cmd->Data()) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
 
-bool EcComponentFunction::PostParseArguments() {
-  if (manifest_path_ && !Context::Get()->factory_mode()) {
-    LOG(ERROR) << "manifest_path can only be set in factory_runtime_probe.";
-    return false;
+  for (const auto& expect : comp.i2c.expect) {
+    auto cmd = GetI2cReadCommand(comp.i2c.port, comp.i2c.addr, expect.reg,
+                                 expect.write_data, expect.bytes);
+    auto i2c_cmd_label = GenerateExpectI2cCommandLogLabel(expect);
+    if (!RunI2cCommandAndCheckSuccess(ec_dev_fd, cmd.get())) {
+      VLOG(1) << comp_label << " not probed because " << i2c_cmd_label
+              << " failed";
+      return false;
+    }
+    if (!expect.value.has_value()) {
+      VLOG(1) << comp_label << " passed the expect rule: " << i2c_cmd_label
+              << " succeeded";
+      continue;
+    }
+    if (!IsMatchExpect(expect, cmd->RespData())) {
+      VLOG(1) << comp_label << " not probed because " << i2c_cmd_label
+              << " responded unmatched data 0x"
+              << base::HexEncode(cmd->RespData());
+      return false;
+    }
+    VLOG(1) << comp_label << " passed the expect rule: " << i2c_cmd_label
+            << " responded matched data 0x" << base::HexEncode(cmd->RespData());
   }
+  VLOG(1) << comp_label << " probed because it passed all expect rules";
   return true;
 }
 
