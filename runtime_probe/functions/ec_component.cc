@@ -67,17 +67,19 @@ bool RunI2cCommandAndCheckSuccess(const base::ScopedFD& ec_dev_fd,
 std::string GenerateComponentLogLabel(
     const EcComponentManifest::Component& comp) {
   std::stringstream string_builder;
+  uint8_t i2c_addr[] = {comp.i2c.addr};
   string_builder << "EC component " << comp.component_type << ":"
                  << comp.component_name << " on i2c port "
                  << static_cast<int>(comp.i2c.port) << " addr 0x"
-                 << base::HexEncode({comp.i2c.addr});
+                 << base::HexEncode(i2c_addr, 1);
   return string_builder.str();
 }
 
 std::string GenerateExpectI2cCommandLogLabel(
     const EcComponentManifest::Component::I2c::Expect& expect) {
   std::stringstream string_builder;
-  string_builder << "i2cxfer command reg=0x" << base::HexEncode({expect.reg})
+  uint8_t expect_reg[] = {expect.reg};
+  string_builder << "i2cxfer command reg=0x" << base::HexEncode(expect_reg, 1)
                  << " write_data=0x" << base::HexEncode(expect.write_data);
   return string_builder.str();
 }
