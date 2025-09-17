@@ -742,7 +742,13 @@ class CrosConfigBaseImpl:
                 continue
             targets = [device_targets.get(c) for c in components]
 
-            key = self._GetFirmwareGroupingName(device)
+            # For ISH firmware, use "/firmware-signing/signature-id" as the
+            # key instead of coreboot name to allow devices which share the same
+            # coreboot to use different ISH firmware target.
+            if "ish" in components:
+                key = device.GetProperty("/firmware-signing", "signature-id")
+            else:
+                key = self.GetFirmwareGroupingName(device)
 
             if firmware_filter and key not in firmware_filter:
                 continue
