@@ -4,7 +4,6 @@
 
 #include "runtime_probe/utils/ec_component_manifest.h"
 
-#include <limits>
 #include <optional>
 #include <string>
 #include <utility>
@@ -38,10 +37,6 @@ bool SetHexValue(const std::string* value, T& val) {
   }
   uint32_t val_;
   if (!base::HexStringToUInt(*value, &val_)) {
-    return false;
-  }
-  if (val_ < std::numeric_limits<T>::min() ||
-      std::numeric_limits<T>::max() < val_) {
     return false;
   }
   val = val_;

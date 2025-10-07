@@ -38,8 +38,4 @@ int SyscallerImpl::Ioctl(int fd,
   return ioctl(fd, request, data);
 }
 
-void SyscallerImpl::Usleep(useconds_t microseconds) {
-  usleep(microseconds);
-}
-
 }  // namespace runtime_probe

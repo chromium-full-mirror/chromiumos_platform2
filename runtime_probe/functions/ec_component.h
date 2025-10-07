@@ -29,8 +29,6 @@ class EcComponentFunction : public PrivilegedProbeFunction {
   NAME_PROBE_FUNCTION("ec_component");
 
  private:
-  class CommandSequenceHistoryTracker;
-
   // PrivilegedProbeFunction overrides.
   bool PostParseArguments() final;
   DataType EvalImpl() const override;
@@ -45,9 +43,7 @@ class EcComponentFunction : public PrivilegedProbeFunction {
       const base::ScopedFD& ec_dev_fd) const;
 
   bool IsValidComponent(const EcComponentManifest::Component& comp,
-                        const base::ScopedFD& ec_dev_fd,
-                        CommandSequenceHistoryTracker* tracker,
-                        bool use_cached_invocations) const;
+                        const base::ScopedFD& ec_dev_fd) const;
 
   PROBE_FUNCTION_ARG_DEF(std::optional<std::string>, type);
   PROBE_FUNCTION_ARG_DEF(std::optional<std::string>, name);
