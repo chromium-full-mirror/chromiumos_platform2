@@ -44,8 +44,12 @@ constexpr auto kIshDevPath("dev/cros_ish");
 class EcComponentFunctionTest : public BaseFunctionTest {
  protected:
   void SetUp() override {
+    run_command_count_ = 0;
     // Default to EC device.
     SetUpEcDevice();
+
+    auto syscaller = mock_context()->mock_syscaller();
+    EXPECT_CALL(*syscaller, Usleep(_)).WillRepeatedly(Return());
   }
 
   class FakeGetEcVersionCommand : public ec::GetVersionCommand {
@@ -69,17 +73,43 @@ class EcComponentFunctionTest : public BaseFunctionTest {
     std::optional<struct ec_response_get_version> ish_resp_;
   };
 
-  class MockI2cPassthruCommand : public ec::I2cPassthruCommand {
+  class FakeI2cPassthruCommand : public ec::I2cPassthruCommand {
    public:
-    template <typename T = MockI2cPassthruCommand>
-    static std::unique_ptr<T> Create() {
-      return ec::I2cPassthruCommand::Create<T>(0, 0, {0}, 1);
+    static std::unique_ptr<FakeI2cPassthruCommand> Create(
+        int* run_counter,
+        bool run_success,
+        uint32_t result,
+        uint8_t i2c_status,
+        const std::vector<uint8_t>& resp_data) {
+      auto cmd =
+          ec::I2cPassthruCommand::Create<FakeI2cPassthruCommand>(0, 0, {0}, 1);
+      cmd->run_counter_ = run_counter;
+      cmd->run_success_ = run_success;
+      cmd->result_ = result;
+      cmd->i2c_status_ = i2c_status;
+      cmd->resp_data_ = resp_data;
+      return cmd;
     }
 
-    MOCK_METHOD(bool, Run, (int), (override));
-    MOCK_METHOD(base::span<const uint8_t>, RespData, (), (const override));
-    MOCK_METHOD(uint32_t, Result, (), (const override));
-    MOCK_METHOD(uint8_t, I2cStatus, (), (const override));
+    bool Run(int fd) override {
+      if (run_counter_ != nullptr) {
+        ++*run_counter_;
+      }
+      return run_success_;
+    }
+
+    uint32_t Result() const override { return result_; }
+    uint8_t I2cStatus() const override { return i2c_status_; }
+    base::span<const uint8_t> RespData() const override {
+      return {resp_data_.begin(), resp_data_.end()};
+    }
+
+   private:
+    bool run_success_ = false;
+    uint32_t result_ = 0;
+    uint8_t i2c_status_ = 0;
+    std::vector<uint8_t> resp_data_;
+    int* run_counter_ = nullptr;
   };
 
   class MockEcComponentFunction : public EcComponentFunction {
@@ -152,67 +182,61 @@ class EcComponentFunctionTest : public BaseFunctionTest {
 
   void SetI2cReadSuccess(MockEcComponentFunction* probe_function,
                          uint8_t port,
-                         uint8_t addr7) const {
-    constexpr uint8_t kRturnValue[] = {0x00};
-    auto cmd =
-        MockI2cPassthruCommand::Create<NiceMock<MockI2cPassthruCommand>>();
-    ON_CALL(*cmd, Run).WillByDefault(Return(true));
-    ON_CALL(*cmd, Result).WillByDefault(Return(kEcResultSuccess));
-    ON_CALL(*cmd, I2cStatus).WillByDefault(Return(kEcI2cStatusSuccess));
-    ON_CALL(*cmd, RespData)
-        .WillByDefault(Return(base::span<const uint8_t>{kRturnValue}));
+                         uint8_t addr7) {
+    auto create_cmd_func = [this] {
+      auto cmd = FakeI2cPassthruCommand::Create(
+          &(this->run_command_count_), true, kEcResultSuccess,
+          kEcI2cStatusSuccess, std::vector<uint8_t>{0x00});
+      return cmd;
+    };
     ON_CALL(*probe_function, GetI2cReadCommand(port, addr7, _, _, _))
-        .WillByDefault(Return(ByMove(std::move(cmd))));
+        .WillByDefault(testing::Invoke(create_cmd_func));
   }
 
   void ExpectI2cReadSuccess(MockEcComponentFunction* probe_function,
                             uint8_t port,
-                            uint8_t addr7) const {
-    constexpr uint8_t kRturnValue[] = {0x00};
-    auto cmd =
-        MockI2cPassthruCommand::Create<NiceMock<MockI2cPassthruCommand>>();
-    ON_CALL(*cmd, Run).WillByDefault(Return(true));
-    ON_CALL(*cmd, Result).WillByDefault(Return(kEcResultSuccess));
-    ON_CALL(*cmd, I2cStatus).WillByDefault(Return(kEcI2cStatusSuccess));
-    ON_CALL(*cmd, RespData)
-        .WillByDefault(Return(base::span<const uint8_t>{kRturnValue}));
+                            uint8_t addr7) {
+    auto cmd = FakeI2cPassthruCommand::Create(
+        &(this->run_command_count_), true, kEcResultSuccess,
+        kEcI2cStatusSuccess, std::vector<uint8_t>{0x00});
     EXPECT_CALL(*probe_function, GetI2cReadCommand(port, addr7, _, _, _))
         .WillOnce(Return(ByMove(std::move(cmd))));
   }
 
-  void SetI2cReadSuccessWithResult(
-      MockEcComponentFunction* probe_function,
-      uint8_t port,
-      uint8_t addr7,
-      uint8_t offset,
-      const std::vector<uint8_t>& write_data,
-      uint8_t len,
-      base::span<const uint8_t> return_value) const {
-    auto cmd =
-        MockI2cPassthruCommand::Create<NiceMock<MockI2cPassthruCommand>>();
-    ON_CALL(*cmd, Run).WillByDefault(Return(true));
-    ON_CALL(*cmd, Result).WillByDefault(Return(kEcResultSuccess));
-    ON_CALL(*cmd, I2cStatus).WillByDefault(Return(kEcI2cStatusSuccess));
-    ON_CALL(*cmd, RespData).WillByDefault(Return(return_value));
+  void SetI2cReadSuccessWithResult(MockEcComponentFunction* probe_function,
+                                   uint8_t port,
+                                   uint8_t addr7,
+                                   uint8_t offset,
+                                   const std::vector<uint8_t>& write_data,
+                                   uint8_t len,
+                                   base::span<const uint8_t> return_value) {
+    std::vector<uint8_t> return_value_copy(return_value.begin(),
+                                           return_value.end());
+    auto create_cmd_func = [this, return_value_copy]() {
+      auto cmd = FakeI2cPassthruCommand::Create(
+          &(this->run_command_count_), true, kEcResultSuccess,
+          kEcI2cStatusSuccess, return_value_copy);
+      return cmd;
+    };
     ON_CALL(*probe_function,
             GetI2cReadCommand(port, addr7, offset, write_data, len))
-        .WillByDefault(Return(ByMove(std::move(cmd))));
+        .WillByDefault(testing::Invoke(create_cmd_func));
   }
 
   void SetI2cReadFailed(MockEcComponentFunction* probe_function,
                         uint8_t port,
-                        uint8_t addr7) const {
-    constexpr uint8_t kRturnValue[] = {0x00};
-    auto cmd =
-        MockI2cPassthruCommand::Create<NiceMock<MockI2cPassthruCommand>>();
-    ON_CALL(*cmd, Run).WillByDefault(Return(false));
-    ON_CALL(*cmd, Result).WillByDefault(Return(kEcResultTimeout));
-    ON_CALL(*cmd, I2cStatus).WillByDefault(Return(kEcI2cStatusSuccess));
-    ON_CALL(*cmd, RespData)
-        .WillByDefault(Return(base::span<const uint8_t>{kRturnValue}));
+                        uint8_t addr7) {
+    auto create_cmd_func = [this] {
+      auto cmd = FakeI2cPassthruCommand::Create(
+          &(this->run_command_count_), false, kEcResultTimeout,
+          kEcI2cStatusSuccess, std::vector<uint8_t>());
+      return cmd;
+    };
     ON_CALL(*probe_function, GetI2cReadCommand(port, addr7, _, _, _))
-        .WillByDefault(Return(ByMove(std::move(cmd))));
+        .WillByDefault(testing::Invoke(create_cmd_func));
   }
+
+  int run_command_count_;
 };
 
 class EcComponentFunctionTestNoExpect : public EcComponentFunctionTest {
@@ -230,6 +254,53 @@ class EcComponentFunctionTestWithExpect : public EcComponentFunctionTest {
     SetUpEcComponentManifest("image1", "with_expect");
   }
 };
+
+class EcComponentFunctionTestWithSimilarCommands
+    : public EcComponentFunctionTest {
+ protected:
+  void SetUp() override {
+    EcComponentFunctionTest::SetUp();
+    SetUpEcComponentManifest("image1", "with_similar_commands");
+  }
+};
+
+TEST_F(EcComponentFunctionTestWithSimilarCommands,
+       ProbeWithCommandResultsReused) {
+  auto arguments = base::JSONReader::Read("{\"type\": \"base_sensor\"}");
+  auto probe_function =
+      CreateProbeFunction<MockEcComponentFunction>(arguments->GetDict());
+
+  SetI2cReadSuccessWithResult(probe_function.get(), 1, 0x01, 0x00,
+                              std::vector<uint8_t>{0xaa, 0xbb}, 0, {});
+  SetI2cReadSuccessWithResult(probe_function.get(), 1, 0x01, 0x01,
+                              std::vector<uint8_t>{}, 1, {0x11});
+  SetI2cReadSuccessWithResult(probe_function.get(), 1, 0x01, 0x02,
+                              std::vector<uint8_t>{}, 1, {0xbb});
+  SetI2cReadSuccessWithResult(probe_function.get(), 1, 0x01, 0xaa,
+                              std::vector<uint8_t>{}, 1, {0xff});
+
+  auto actual = EvalProbeFunction(probe_function.get());
+
+  ExpectUnorderedListEqual(actual, CreateProbeResultFromJson(R"JSON(
+    [
+      {
+        "component_type": "base_sensor",
+        "component_name": "component_i2c_response_11_bb"
+      },
+      {
+        "component_name": "component_i2c_with_different_cmds",
+        "component_type": "base_sensor"
+      }
+    ]
+  )JSON"));
+
+  // The number of invocation count is:
+  //   - 3 for probing component_i2c_response_11_22.
+  //   - 0 for probing component_i2c_response_11_bb.
+  //   - 2 for probing component_i2c_with_different_cmds.
+  //   - 0 for probing component_i2c_with_different_cmds_2.
+  EXPECT_EQ(run_command_count_, 5);
+}
 
 class EcComponentFunctionTestWithIsh : public EcComponentFunctionTestNoExpect {
  protected:
