@@ -82,8 +82,8 @@ std::string GenerateExpectI2cCommandLogLabel(
   string_builder << "i2cxfer command reg=0x" << base::HexEncode(expect_reg, 1)
                  << " write_data=0x" << base::HexEncode(expect.write_data);
   if (expect.override_addr.has_value()) {
-    string_builder << " override_addr=0x"
-                   << base::HexEncode({*expect.override_addr});
+    uint8_t override_addr[] = {*expect.override_addr};
+    string_builder << " override_addr=0x" << base::HexEncode(override_addr, 1);
   }
   return string_builder.str();
 }
