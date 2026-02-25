@@ -393,6 +393,22 @@ REGIONS_LIST = [
     Region("in", "xkb:us::eng", "Asia/Calcutta", "en-US", KML.ANSI, "India"),
     Region("it", "xkb:it::ita", "Europe/Rome", "it", KML.ISO, "Italy"),
     Region(
+        "jo",
+        "xkb:us::eng",
+        "Asia/Amman",
+        ["ar", "en-US"],
+        KML.ANSI,
+        "Jordan with US English and Arabic keyboard",
+    ),
+    Region(
+        "jo.us",
+        "xkb:us::eng",
+        "Asia/Amman",
+        ["en-US", "ar"],
+        KML.ANSI,
+        "Jordan with US English keyboard",
+    ),
+    Region(
         "latam-es-419",
         "xkb:es::spa",
         "America/Mexico_City",
@@ -1141,7 +1157,6 @@ UNCONFIRMED_REGIONS_LIST = [
     Region(
         "tn", "xkb:tn::ara", "Africa/Tunis", ["ar", "fr"], KML.ANSI, "Tunisia"
     ),
-    Region("jo", "xkb:jo::ara", "Asia/Amman", ["ar", "en"], KML.ANSI, "Jordan"),
     Region(
         "hn",
         "xkb:latam::spa",
