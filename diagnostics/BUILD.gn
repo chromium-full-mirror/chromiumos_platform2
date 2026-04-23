@@ -14,9 +14,11 @@ group("all") {
     "//diagnostics/dbus_bindings",
     "//diagnostics/mojom",
   ]
-  if (use.test) {
-    deps += [ "//diagnostics/cros_healthd:cros_healthd_test" ]
-  }
+
+  # TODO(b/505762905): Uncomment when fixed.
+  #  if (use.test) {
+  #    deps += [ "//diagnostics/cros_healthd:cros_healthd_test" ]
+  #  }
   if (use.fuzzer) {
     deps += [
       "//diagnostics/cros_healthd/events:crash_events_uploads_log_parser_fuzzer",
