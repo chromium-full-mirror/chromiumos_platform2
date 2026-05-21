@@ -354,6 +354,10 @@ void Manager::SetAllowedDevices(
   allowed_devices_ = allowed_devices;
 }
 
+bool Manager::ShouldAppendDNSServers() const {
+  return base::Contains(allowed_devices_, "br-lan");
+}
+
 void Manager::Start() {
   LOG(INFO) << "Manager started.";
 

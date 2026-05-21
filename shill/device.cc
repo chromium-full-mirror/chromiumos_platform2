@@ -961,17 +961,35 @@ void Device::PrependDNSServersIntoIPConfig(const IPConfigRefPtr& ipconfig) {
   ipconfig->UpdateDNSServers(std::move(servers));
 }
 
+// This method can either prepend or append the DNS servers obtained from
+// manager_->FilterPrependDNSServersByFamily(). If a device named "br-lan"
+// is present in `manager_->allowed_devices()`, the filtered DNS servers
+// are appended; otherwise, they are prepended.
+// TODO(b/514970168): Rename this method to better reflect its behavior.
 void Device::PrependDNSServers(const IPAddress::Family family,
                                std::vector<std::string>* servers) {
-  std::vector<std::string> output_servers =
+  const std::vector<std::string> dns_servers_from_flag =
       manager_->FilterPrependDNSServersByFamily(family);
 
-  std::set<std::string> unique(output_servers.begin(), output_servers.end());
-  for (const auto& server : *servers) {
-    if (unique.find(server) == unique.end()) {
-      output_servers.push_back(server);
-      unique.insert(server);
+  const bool append_dns = manager_->ShouldAppendDNSServers();
+
+  std::vector<std::string> output_servers;
+  std::set<std::string> unique_servers;
+
+  auto add_unique = [&](const std::vector<std::string>& source) {
+    for (const auto& server : source) {
+      if (unique_servers.emplace(server).second) {
+        output_servers.push_back(server);
+      }
     }
+  };
+
+  if (append_dns) {
+    add_unique(*servers);
+    add_unique(dns_servers_from_flag);
+  } else {
+    add_unique(dns_servers_from_flag);
+    add_unique(*servers);
   }
   servers->swap(output_servers);
 }

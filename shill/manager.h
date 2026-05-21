@@ -128,6 +128,8 @@ class Manager {
   virtual void SetAllowedDevices(
       const std::vector<std::string>& allowed_devices);
 
+  virtual bool ShouldAppendDNSServers() const;
+
   // Returns true if |device_name| is either not in the blocked list, or in the
   // allowed list, depending on which list was supplied in startup settings.
   virtual bool DeviceManagementAllowed(const std::string& device_name);
