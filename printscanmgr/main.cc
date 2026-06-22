@@ -8,6 +8,7 @@
 #include <utility>
 
 #include <base/check_op.h>
+#include <base/files/file_util.h>
 #include <base/logging.h>
 #include <brillo/syslog_logging.h>
 #include <mojo/core/embedder/embedder.h>
@@ -26,8 +27,16 @@ int main(int arg, char** argv) {
   auto printscanmgr_endpoint = channel.TakeLocalEndpoint();
   auto executor_endpoint = channel.TakeRemoteEndpoint();
 
-  // The root-level parent process will continue on as the executor, and the
-  // child will become the sandboxed printscanmgr daemon.
+  // Apply CLOEXEC because PlatformChannel creates the socketpair without it.
+  if (!base::SetCloseOnExec(
+          printscanmgr_endpoint.platform_handle().GetFD().get()) ||
+      !base::SetCloseOnExec(
+          executor_endpoint.platform_handle().GetFD().get())) {
+    PLOG(FATAL) << "Error calling SetCloseOnExec";
+  }
+
+  // The child process will become the executor, and the parent process will
+  // continue on as the sandboxed printscanmgr daemon.
   pid_t pid = fork();
 
   if (pid == -1) {
