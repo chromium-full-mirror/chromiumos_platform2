@@ -1337,6 +1337,7 @@ void AddSquidFlags(chromeos::ui::ChromiumCommandBuilder* builder) {
     // Helium Arcvm Kiosk specific customization
     // (go/helium-kiosk-dd)
     builder->AddFeatureEnableOverride("HeliumArcvmKiosk");
+    builder->AddArg("--arc-scale=320");
   }
 }
 
